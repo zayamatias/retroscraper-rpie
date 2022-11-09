@@ -49,8 +49,7 @@ if __name__ == '__main__':
     parser.add_argument('--bezels', help='Download bezels for games',action='store_true')
     parser.add_argument('--sysbezels', help='Download system bezel if game bezel is not found',action='store_true')
     parser.add_argument('--cleanmedia', help='Clean media directroies before downloading',action='store_true')
-    parser.add_argument('--linkmedia', help='Creat media links to save space (only in Linux/RPI)',action='store_true')
-    parser.add_argument('--remote', help='Scan a remote RetroPie intsallation add USER and PASSWORD (--remote USER PASSWD)',nargs=2)
+    #parser.add_argument('--linkmedia', help='Creat media links to save space (only in Linux/RPI)',action='store_true')
     parser.add_argument('--systems', help='List of systems to scan (comma separated values)',nargs=1)
     try:
         args = parser.parse_args()
