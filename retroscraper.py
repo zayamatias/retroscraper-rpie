@@ -33,7 +33,7 @@ if __name__ == '__main__':
     if not os.path.isdir(str(sysPath.home())+'/.retroscraper/filetmp/'):
         os.makedirs(str(sysPath.home())+'/.retroscraper/filetmp/')
         print ('Starting retroscraper - be Patient :-)')
-    logging.basicConfig(filename='retroscraper.log', level=logging.DEBUG)
+    logging.basicConfig(filename='retroscraper.log', level=logging.ERROR)
     parser = ArgumentParser(description='RetroScraper...supercharge your roms with metadata!')
     parser.add_argument('--systemsfile', help='location of the es_systems.cfg file)',nargs=1)
     parser.add_argument('--nobackup', help='Do not backup gamelist.xml file',action='store_true')
