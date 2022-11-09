@@ -53,6 +53,14 @@ Wait until your whole system is scraped.
 
 Location of the, usually called, es_systems.cfg file, this is the emulation station file that holds the information for the systems ands roms directories you have set up. If you do not use this flag, retroscraper will look into the usual places.
 
+#### --preferbox
+
+Download boxes instead of screenshots for games
+
+#### --novideodown
+
+Do not download videos (to save space if needd)
+
 #### Name Decorators:
 
 The following options allow you to add 'decorators' to the name taht is going to be displayed in your game list. They are disabled by default.
