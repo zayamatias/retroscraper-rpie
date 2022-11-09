@@ -51,11 +51,11 @@ Wait until your whole system is scraped.
 
 #### --systemsfile FILE
 
-Location of the, usually called, es_systems.cfg file, this is the emulation station file that holds the information for the systems ands roms directories you have set up. 
+Location of the, usually called, es_systems.cfg file, this is the emulation station file that holds the information for the systems ands roms directories you have set up. If you do not use this flag, retroscraper will look into the usual places.
 
 #### Name Decorators:
 
-The following options allow you to add 'decorators' to the name taht is going to be displayed in your system, for example:
+The following options allow you to add 'decorators' to the name taht is going to be displayed in your game list. They are disabled by default.
 
 #### --version
 
@@ -90,9 +90,12 @@ Language to use for game names & synposis
 
 If you select to use google translate, the games desciptions which are not available in the selected language, will be translated by google.
 
+Default language is 'en'
+
 #### --nodb
 
 Retroscraper creates a local retroscraper.db file, where it will store all the checksums for yoru files. This is done to avoid losing extra time in subsequent runs, specially fro large files. If you prefer to calculate the hashes on teh fly, use this.
+
 #### --nobackup
 
 Since latest version, RetroScraper will autoamtically generate a backup of your gamelist.xml file for each system, by adding a number to it (gamelist.xml.1, gamelist.xml.2 and so forth). If you want to avoid having these backups created, use this command.
