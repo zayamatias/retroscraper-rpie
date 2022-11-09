@@ -37,7 +37,9 @@ if __name__ == '__main__':
     parser = ArgumentParser(description='RetroScraper...supercharge your roms with metadata!')
     parser.add_argument('--systemsfile', help='location of the es_systems.cfg file)',nargs=1)
     parser.add_argument('--nobackup', help='Do not backup gamelist.xml file',action='store_true')
-    parser.add_argument('--keepdata', help='Keep favprites and play count of your games',action='store_true')
+    parser.add_argument('--keepdata', help='Keep favorites and play count of your games',action='store_true')
+    parser.add_argument('--preferbox', help='Prefer boxes instead of screenshots',action='store_true')
+    parser.add_argument('--novideodown', help='Do not download videos',action='store_true')
     parser.add_argument('--nodb', help='Do not use a local DB to store file hashes (might impact performance nagatively)',action='store_true')
     parser.add_argument('--language', help='Select language for descriptions',nargs=1)
     parser.add_argument('--google', help='Use google translate if description not found in your language',action='store_true')
@@ -97,6 +99,14 @@ if __name__ == '__main__':
         config['config']['bezels']= argsvals['bezels']
     except:
         config['config']['bezels']= False
+    try:
+        config['config']['preferbox']= argsvals['preferbox']
+    except:
+        config['config']['preferbox']= False
+    try:
+        config['config']['novideodown']= argsvals['novideodown']
+    except:
+        config['config']['novideodown']= False
     try:
         config['config']['sysbezels']= argsvals['sysbezels']
     except:
