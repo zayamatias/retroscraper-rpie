@@ -147,7 +147,11 @@ if __name__ == '__main__':
     except:
         config['config']['nobackup']= False
     complete = apicalls.getLanguagesFromAPI(apikey,uuid,'MAIN')
-    trans = complete['en']
+    try:
+        trans = complete['en']
+    except:
+        print ("CANNOT CONNECT TO THE BACKEND, PLEASE TRY AGAIN LATER")
+        sysexit()
     scanqueue = Queue()
     q=Queue()
     if not scrapfunctions.isValidVersion(version,apikey,uuid,'MAIN'):
