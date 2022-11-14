@@ -7,7 +7,6 @@ from platform import system
 from threading import Thread
 from queue import Queue
 from time import sleep
-from random import randint,randrange
 from signal import signal,SIGINT
 import logging
 import apicalls
@@ -53,6 +52,7 @@ if __name__ == '__main__':
     parser.add_argument('--cleanmedia', help='Clean media directroies before downloading',action='store_true')
     #parser.add_argument('--linkmedia', help='Creat media links to save space (only in Linux/RPI)',action='store_true')
     parser.add_argument('--systems', help='List of systems to scan (comma separated values)',nargs=1)
+    parser.add_argument('--debug', help='Use for debugging purposes',action='store_true')
     try:
         args = parser.parse_args()
         argsvals = vars(args)
@@ -66,6 +66,12 @@ if __name__ == '__main__':
     config = scrapfunctions.loadConfig(logging,q,apikey,uuid,'MAIN')
     cli = True
     silent = True
+
+    try:
+        debug = argsvals['debug']
+        logging.getLogger().setLevel(logging.DEBUG)
+    except:
+        pass
     try:
         if 'decorators' in config['config'].keys:
             pass
