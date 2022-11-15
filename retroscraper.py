@@ -69,7 +69,8 @@ if __name__ == '__main__':
 
     try:
         debug = argsvals['debug']
-        logging.getLogger().setLevel(logging.DEBUG)
+        if debug:
+            logging.getLogger().setLevel(logging.DEBUG)
     except:
         pass
     try:
