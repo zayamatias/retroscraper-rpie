@@ -870,16 +870,6 @@ def findMissingGames(config,systemid,havelist,apikey,uuid,systems,queue,doDownlo
     f.close()
     return
 
-def getSystemIcon(config,systemid,apikey,uuid,thn,cli):
-    dfile =''
-    if systemid !=0:
-        dpath = str(Path.home())+'/.retroscraper'
-        dfile = dpath+'/system.png'
-        if ospath.isfile(dfile):
-            remove(dfile)
-        apicalls.getImageAPI(config,'/api/medias/'+str(systemid)+'/system/logo.png',dfile,apikey,uuid,thn,'syslogo',cli,logging)
-    return dfile
-
 def writeXML(sq,writeFile,q):
     q.put(['gamelabel','text','WRITING GAMELIST'])
     thesegames =[]
@@ -1029,12 +1019,6 @@ def scanSystems(q,systems,apikey,uuid,companies,config,logging,remoteSystems,sel
             sysid=75
         else:
             sysid=system['id'][0]
-        getSystemIcon(config,sysid,apikey,uuid,thn,cli)
-        q.put(['sysImage','source',hpath+'system.png'])
-        q.put(['sysImageGame','source',hpath+'system.png'])
-        q.put(['sysLabel','text','System : '+str(system['name'])+' - '+str(len(romfiles))+' files'])
-        q.put(['scrapPB','max',len(romfiles)])
-        q.put(['scrapPB','value',0])
         #### SYSTEM IMAGE
         try:
             cm = config['config']['cleanmedia']
@@ -1140,8 +1124,6 @@ def scanSystems(q,systems,apikey,uuid,companies,config,logging,remoteSystems,sel
                 result = copyfile(outXMLFile,outXMLFile+'.'+str(bkcount))
                 logging.info ('###### FILE '+str(bkcount)+' BACKUP DONE IN THREAD '+str(thn))
         logging.info ('###### COPYING NEW GAMELIST IN THREAD '+str(thn))
-        
-        ## TODO - CHECK IF FILE IS REMOTE
         result = copyfile(tmpxmlFile,outXMLFile)
         remove(tmpxmlFile)
         logging.info ('###### COPIED NEW GAMELIST IN THREAD '+str(thn))
