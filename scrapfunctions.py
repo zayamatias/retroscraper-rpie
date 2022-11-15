@@ -1,4 +1,3 @@
-from dataclasses import replace
 import logging
 from re import findall,sub,search
 from xml.sax.saxutils import escape
@@ -940,6 +939,26 @@ def fileProcess(currFileIdx,romfiles,currglvalues,system,q,sq):
     else:
         return file,filext,oldValues
 
+def getSystems(allsys,selected,all):
+    retsys = []
+    for system in allsys:
+        if not system['name']:
+            logging.error ('THERE IS AN ERROR IN SYSTEM '+str(system))
+            continue
+        mysys = dict()
+        if all or system['name'].lower() in selected:
+            mysys['name']=system['name']
+            mysys['id']=system['id']
+            mysys['path']=system['path']
+            mysys['extension']=system['extension']
+            retsys.append(mysys)
+            if not all:
+                selected.remove(system['name'])
+    if selected:
+        print ('COULD NOT LOCATE SYSTEMS '+str(selected))
+        logging.error ('COULD NOT LOCATE SYSTEMS '+str(selected))
+    return retsys
+
 def scanSystems(q,systems,apikey,uuid,companies,config,logging,remoteSystems,selectedSystems,scanqueue,origrompath,trans,thn,cli=False):
     hpath = str(Path.home())+'/.retroscraper/'
     q.put(['gamelabel','text','Scanning Files'])
@@ -961,12 +980,11 @@ def scanSystems(q,systems,apikey,uuid,companies,config,logging,remoteSystems,sel
             doallsystems=True
         else:
             doallsystems=False
-    logging.info ('###### '+str(doallsystems))
-    for system in systems:
-        logging.info ('###### SYSTEM '+str(system))
-        if (system['name'].lower() not in selectedSystems) and (selectedSystems!=[]) and not doallsystems:
-            continue
-        logging.info ('###### DOING '+str(system))
+    logging.info ('###### DO ALL SYSTEMS '+str(doallsystems))
+    logging.info ('###### THESE ARE THE SELECTED SYSTEMS:'+str(selectedSystems))
+    systemList = getSystems(systems,selectedSystems,doallsystems)
+    for system in systemList:
+        logging.info ('###### START SCAN SYSTEM '+str(system))
         if config['config']['MountPath']:
             system['path']=system['path'].replace(origrompath,config['config']['MountPath'])
         if not testPath(system['path'],logging,thn):
