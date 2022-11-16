@@ -53,6 +53,14 @@ Wait until your whole system is scraped.
 
 Location of the, usually called, es_systems.cfg file, this is the emulation station file that holds the information for the systems ands roms directories you have set up. If you do not use this flag, retroscraper will look into the usual places.
 
+#### --recursive
+
+Scan subfloders in your system folder
+
+#### --relativepaths
+
+Store relative paths in the gamelist
+
 #### --preferbox
 
 Download boxes instead of screenshots for games
