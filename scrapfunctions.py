@@ -25,18 +25,13 @@ def pathExists(config,path,logging,thn):
     return ospath.isdir(path)
     
 
-def normalizeFileName(filename,config,ftype ='$$$_$$$'):
+def normalizeFileName(filename,config,syspath):
     if ftype=='bezel' and 'overlays' in filename:
         return filename
     if '/' not in filename:
         return escape (filename)
-    if config['config']['relative'] and ftype in filename:
-        fname = '.'+filename[filename.rindex('/'+ftype):]
-        return escape (fname)
     if config['config']['relative']:
-        fname = '.'+filename[filename.rindex('/'):]
-    else:
-        fname = filename
+        fname = '.'+filename.replace(syspath,'/')
     return escape (fname)
 
 
@@ -310,7 +305,7 @@ def processBezels(config,bezelURL, destbezel, apikey, uuid,filename,path,logging
     logging.info ('###### ROMCFGPATH IS '+rcfp+' THREAD['+str(thn)+']')
     logging.info ('###### CREEATING FILE '+sbc+' IN THREAD ['+str(thn)+']')
     f = open(bezelcfg, "w")
-    properfname = normalizeFileName(bezeldir,config,'bezel')
+    properfname = normalizeFileName(bezeldir,config,'bezel','')
     filetext = 'input_overlay = "'+properfname+'/'+romcfg+'"\n'
     try:
         ft = filetext
@@ -327,7 +322,7 @@ def processBezels(config,bezelURL, destbezel, apikey, uuid,filename,path,logging
     logging.info ('###### CLOSE FILE '+sbc+' IN RESULTED IN '+str(fsize)+' THREAD ['+str(thn)+']')
     logging.info ('###### CREEATING FILE '+rcfp+' IN THREAD ['+str(thn)+']')
     nf = open(romcfgpath, "w")
-    properfname = normalizeFileName(destbezel,config,'bezel')
+    properfname = normalizeFileName(destbezel,config,'bezel','')
     filetext = 'overlays = "1"\noverlay0_overlay = "'+properfname+'"\noverlay0_full_screen = "true"\noverlay0_descs = "0"\n'
     try:
         ft = filetext
@@ -614,7 +609,7 @@ def getFileInfo(file,system,companies,emptyGameTag,apikey,uuid,q,sq,config,loggi
         logging.info ('##### URL='+str(bezelURL)+' THREAD['+str(thn)+']')
         logging.info ('###### DESTBEZEL = '+str(destbezel)+' THREAD['+str(thn)+']')
         processBezels(config,bezelURL,destbezel,apikey,uuid,file,system['path'],logging,thn,cli)
-    thisTag = thisTag.replace('$PATH',normalizeFileName(file,config))
+    thisTag = thisTag.replace('$PATH',normalizeFileName(file,config,system['path']))
     logging.info ('###### GAME NAMES FOUND :['+str(result['game']['names'])+']')
     gameName = result['game']['names'][0]['text']
     try:
@@ -771,11 +766,11 @@ def getFileInfo(file,system,companies,emptyGameTag,apikey,uuid,q,sq,config,loggi
     thisTag = thisTag.replace('$DEVELOPER',escape(developer))
     genre=''
     logging.info ('###### REPLACE IMAGE')
-    thisTag = thisTag.replace('$IMAGE',normalizeFileName(destimage,config,'image'))
+    thisTag = thisTag.replace('$IMAGE',normalizeFileName(destimage,config,system['path']))
     logging.info ('###### REPLACE VIDEO')
-    thisTag = thisTag.replace('$VIDEO',normalizeFileName(destvideo,config,'video'))
+    thisTag = thisTag.replace('$VIDEO',normalizeFileName(destvideo,config,system['path']))
     logging.info ('###### REPLACE MARQUEE')
-    thisTag = thisTag.replace('$MARQUEE',normalizeFileName(destmarquee,config,'marquee'))
+    thisTag = thisTag.replace('$MARQUEE',normalizeFileName(destmarquee,config,system['path']))
     logging.info ('###### REPLACE RELEASE DATE')
     thisTag = thisTag.replace('$RELEASEDATE','')
     thisTag = thisTag.replace('$PLAYERS','')
