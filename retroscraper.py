@@ -27,6 +27,7 @@ cli = False
 
 
 if __name__ == '__main__':
+ 
     now = datetime.now()
     dts = now.strftime("%Y.%m.%d.%H.%M.%S")
     if not os.path.isdir(str(sysPath.home())+'/.retroscraper/imgtmp/'):
@@ -40,6 +41,7 @@ if __name__ == '__main__':
     parser.add_argument('--systemsfile', help='location of the es_systems.cfg file)',nargs=1)
     parser.add_argument('--nobackup', help='Do not backup gamelist.xml file',action='store_true')
     parser.add_argument('--relativepaths', help='Use relative paths instead of full paths',action='store_true')
+    parser.add_argument('--recursive', help='Search subdirctories in systems paths',action='store_true')
     parser.add_argument('--keepdata', help='Keep favorites and play count of your games',action='store_true')
     parser.add_argument('--preferbox', help='Prefer boxes instead of screenshots',action='store_true')
     parser.add_argument('--novideodown', help='Do not download videos',action='store_true')
@@ -81,6 +83,10 @@ if __name__ == '__main__':
         config['config']['relative'] = argsvals['relativepaths']
     except:
         config['config']['relative'] = False
+    try:
+        config['config']['recursive'] = argsvals['recursive']
+    except:
+        config['config']['recursive'] = False
     try:
         if 'decorators' in config['config'].keys:
             pass

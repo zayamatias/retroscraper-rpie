@@ -26,12 +26,14 @@ def pathExists(config,path,logging,thn):
     
 
 def normalizeFileName(filename,config,syspath):
-    if ftype=='bezel' and 'overlays' in filename:
+    if '/overlays/' in filename or '/bezels/' in filename:
         return filename
     if '/' not in filename:
         return escape (filename)
     if config['config']['relative']:
         fname = '.'+filename.replace(syspath,'/')
+    else:
+        fname = filename
     return escape (fname)
 
 
@@ -264,7 +266,12 @@ def saveConfig(config,q):
         return config
     return
 
-def processBezels(config,bezelURL, destbezel, apikey, uuid,filename,path,logging,thn,cli):
+def processBezels(config,bezelURL, destbezel, apikey, uuid,filename,path,logging,thn,cli,syspath):
+    extrapath = filename.replace(syspath,'')
+    if '/' in extrapath:
+        extrapath = extrapath[:extrapath.rindex('/')]
+    else:
+        extrapath =''
     try:
         sfn=filename.encode().decode('utf-8')
     except:
@@ -283,7 +290,11 @@ def processBezels(config,bezelURL, destbezel, apikey, uuid,filename,path,logging
     except:
         szname =''
     logging.info ('###### ZIPNAME IS '+szname+' THREAD['+str(thn)+']')
-    bezelcfg = path+zipname+'.cfg'
+    if extrapath:
+        bezelcfg = path+'/'+extrapath+'/'+zipname+'.cfg'
+    else:
+        bezelcfg = path+zipname+'.cfg'
+
     try:
         sbc = bezelcfg.encode().decode('utf-8')
     except:
@@ -305,7 +316,7 @@ def processBezels(config,bezelURL, destbezel, apikey, uuid,filename,path,logging
     logging.info ('###### ROMCFGPATH IS '+rcfp+' THREAD['+str(thn)+']')
     logging.info ('###### CREEATING FILE '+sbc+' IN THREAD ['+str(thn)+']')
     f = open(bezelcfg, "w")
-    properfname = normalizeFileName(bezeldir,config,'bezel','')
+    properfname = normalizeFileName(bezeldir,config,'bezel')
     filetext = 'input_overlay = "'+properfname+'/'+romcfg+'"\n'
     try:
         ft = filetext
@@ -322,7 +333,7 @@ def processBezels(config,bezelURL, destbezel, apikey, uuid,filename,path,logging
     logging.info ('###### CLOSE FILE '+sbc+' IN RESULTED IN '+str(fsize)+' THREAD ['+str(thn)+']')
     logging.info ('###### CREEATING FILE '+rcfp+' IN THREAD ['+str(thn)+']')
     nf = open(romcfgpath, "w")
-    properfname = normalizeFileName(destbezel,config,'bezel','')
+    properfname = normalizeFileName(destbezel,config,'bezel')
     filetext = 'overlays = "1"\noverlay0_overlay = "'+properfname+'"\noverlay0_full_screen = "true"\noverlay0_descs = "0"\n'
     try:
         ft = filetext
@@ -608,7 +619,7 @@ def getFileInfo(file,system,companies,emptyGameTag,apikey,uuid,q,sq,config,loggi
         logging.info ('==================================##### PROCESSNG BEZEL THREAD['+str(thn)+']')
         logging.info ('##### URL='+str(bezelURL)+' THREAD['+str(thn)+']')
         logging.info ('###### DESTBEZEL = '+str(destbezel)+' THREAD['+str(thn)+']')
-        processBezels(config,bezelURL,destbezel,apikey,uuid,file,system['path'],logging,thn,cli)
+        processBezels(config,bezelURL,destbezel,apikey,uuid,file,system['path'],logging,thn,cli,system['path'])
     thisTag = thisTag.replace('$PATH',normalizeFileName(file,config,system['path']))
     logging.info ('###### GAME NAMES FOUND :['+str(result['game']['names'])+']')
     gameName = result['game']['names'][0]['text']
@@ -1002,11 +1013,11 @@ def scanSystems(q,systems,apikey,uuid,companies,config,logging,remoteSystems,sel
             logging.info ('###### GOING FOR LOCAL PATH')
             try:
                 if config['config']['recursive']:
-                    romfiles = [x for x in sorted(Path(spath).glob('**/*.*')) if (('/images/' not in x.as_posix()) and ('/videos/' not in x.as_posix()) and ('/marquees/' not in x.as_posix()) and ('.cfg' not in x.name) and ('.save' not in x.name))]
+                    romfiles = [x for x in sorted(Path(spath).glob('**/*.*')) if (('/images/' not in x.as_posix()) and ('/videos/' not in x.as_posix()) and ('/marquees/' not in x.as_posix()) and ('.cfg' not in x.name) and ('.save' not in x.name) and ('.xml' not in x.name))]
                 else:
-                    romfiles = [x for x in sorted(Path(spath).glob('*.*')) if (('/images/' not in x.as_posix()) and ('/videos/' not in x.as_posix()) and ('/marquees/' not in x.as_posix()) and ('.cfg' not in x.name) and ('.save' not in x.name))]
+                    romfiles = [x for x in sorted(Path(spath).glob('*.*')) if (('/images/' not in x.as_posix()) and ('/videos/' not in x.as_posix()) and ('/marquees/' not in x.as_posix()) and ('.cfg' not in x.name) and ('.save' not in x.name) and ('.xml' not in x.name))]
             except:
-                romfiles = [x for x in sorted(Path(spath).glob('*.*')) if (('/images/' not in x.as_posix()) and ('/videos/' not in x.as_posix()) and ('/marquees/' not in x.as_posix()) and ('.cfg' not in x.name) and ('.save' not in x.name))]
+                romfiles = [x for x in sorted(Path(spath).glob('*.*')) if (('/images/' not in x.as_posix()) and ('/videos/' not in x.as_posix()) and ('/marquees/' not in x.as_posix()) and ('.cfg' not in x.name) and ('.save' not in x.name) and ('.xml' not in x.name))]
             logging.info ('###### FOUND '+str(len(romfiles))+' ROMS FOR SYSTEM')
         except Exception as e:
             logging.error ('####### CANNOT OPEN SYSTEM DIR '+system['path']+' ERROR '+str(e))
