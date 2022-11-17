@@ -12,6 +12,7 @@ from PIL import Image
 from requests import Response as requestsResponse
 from requests import exceptions as requestsexceptions
 from requests.models import Response as reqResponse
+from time import sleep
 
 
 def backendURL():
@@ -54,12 +55,15 @@ def simpleCall(url):
             except requestsexceptions.Timeout:
                 #logging.error ('###### REQUEST TIMED OUT')
                 retries = retries - 1 
+                sleep(0.1)
             except requestsexceptions.TooManyRedirects:
                 pass
                 #logging.error ('###### URL SEEMS TO BE WRONG '+URL)
+                sleep(0.1)
             except requestsexceptions.RequestException as e:
                 #logging.error ('###### UNHANDLED ERROR '+str(e))
                 retries = retries -1
+                sleep(0.1)
         if req.status_code==200:
             response = req.text
         else:
@@ -134,6 +138,7 @@ def getImageAPI(config,url,destfile,apikey,uuid,thn,toi,cli,logging,force=False)
         except Exception as e:
             logging.error ('###### ERROR DOWNLOADING IMAGE '+str(e)+' THREAD['+str(thn)+']')
         retries = retries -1
+        sleep(0.1)
     return False
 
 def getCallHandler(url,apikey,uuid,thn):
@@ -182,6 +187,7 @@ def getCallHandler(url,apikey,uuid,thn):
                     logging.error ('###### GOT RESULT '+str(result.status_code)+' FROM SERVER FOR '+str(url)+' THREAD['+str(thn)+']')
         except:
             retries = retries -1
+            sleep(0.1)
     
     
     
@@ -211,6 +217,7 @@ def postCallHandler(url,apikey,uuid,data,logging,thn):
         except Exception as e:
             logging.error('####### POST REQUEST ERRORED '+str(e))
             retries = retries -1
+            sleep(0.1)
     myResponse = None
     myResponse = requestsResponse()
     myResponse.status_code=404
