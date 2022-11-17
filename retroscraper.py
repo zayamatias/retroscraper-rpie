@@ -149,7 +149,10 @@ if __name__ == '__main__':
         config['config']['cleanmedia']= False
 
     try:
-        systemstoscan = argsvals['systems'][0].lower().split(',')
+        systemstoscanstr = argsvals['systems'][0].lower()
+        if systemstoscanstr[-1]==',':
+            systemstoscanstr=systemstoscanstr[:-1]
+        systemstoscan=systemstoscanstr.split(',')
     except:
         systemstoscan = []
     try:
