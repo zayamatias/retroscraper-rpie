@@ -53,91 +53,95 @@ function latest_ver_retroscraper() {
 }
 
 function list_systems_retroscraper() {
-    find -L "$romdir" -mindepth 1 -maxdepth 1 -not -empty -type d | sort
+    su $user -c "python3 $md_inst/retroscraper.py --listsystems"
 }
 
 function scrape_retroscraper() {
     local system="$1"
+#    echo $system
+
     [[ -z "$system" ]] && return
 
     iniConfig " = " '"' "$configdir/all/scraper.cfg"
     eval $(_load_config_retroscraper)
 
-    local gamelist
-    local img_dir
-    local img_path
-    if [[ "$use_rom_folder" -eq 1 ]]; then
-        gamelist="$romdir/$system/gamelist.xml"
-        img_dir="$romdir/$system/images"
-        img_path="./images"
-    else
-        gamelist="$home/.emulationstation/gamelists/$system/gamelist.xml"
-        img_dir="$home/.emulationstation/downloaded_images/$system"
-        img_path="~/.emulationstation/downloaded_images/$system"
-    fi
+#    local gamelist
+#    local img_dir
+#    local img_path
+#    if [[ "$use_rom_folder" -eq 1 ]]; then
+#        gamelist="$romdir/$system/gamelist.xml"
+#        img_dir="$romdir/$system/images"
+#        img_path="./images"
+#    else
+#        gamelist="$home/.emulationstation/gamelists/$system/gamelist.xml"
+#        img_dir="$home/.emulationstation/downloaded_images/$system"
+#        img_path="~/.emulationstation/downloaded_images/$system"
+#    fi
 
-    local params=()
-    params+=(-image_dir "$img_dir")
-    params+=(-image_path "$img_path")
-    params+=(-video_dir "$img_dir")
-    params+=(-video_path "$img_path")
-    params+=(-marquee_dir "$img_dir")
-    params+=(-marquee_path "$img_path")
-    params+=(-output_file "$gamelist")
-    params+=(-rom_dir "$romdir/$system")
-    params+=(-workers "4")
-    params+=(-skip_check)
+    local params="--systems $system"
 
-    [[ "$system" =~ ^mame-|arcade|fba|neogeo ]] && params+=(-mame)
+    #params+=(-image_dir "$img_dir")
+    #params+=(-image_path "$img_path")
+    ##params+=(-video_dir "$img_dir")
+    #params+=(-video_path "$img_path")
+    #params+=(-marquee_dir "$img_dir")
+    #params+=(-marquee_path "$img_path")
+    #params+=(-output_file "$gamelist")
+    #params+=(-rom_dir "$romdir/$system")
+    #params+=(-workers "4")
+    #params+=(-skip_check)
 
-    if [[ "$use_thumbs" -eq 1 ]]; then
-        params+=(-thumb_only)
-    fi
-    if [[ "$screenshots" -eq 1 ]]; then
-        if [[ "$system" =~ ^mame-|arcade|fba|neogeo ]]; then
-            params+=(-mame_img "s,m,t")
-        else
-            params+=(-console_img "s,b,3b,l,f")
-        fi
-    fi
-    if [[ "$download_videos" -eq 1 ]]; then
-        params+=(-download_videos)
-    fi
-    if [[ "$download_marquees" -eq 1 ]]; then
-        params+=(-download_marquees)
-    fi
-    if [[ -n "$max_width" ]]; then
-        params+=(-max_width "$max_width")
-    fi
-    if [[ -n "$max_height" ]]; then
-        params+=(-max_height "$max_height")
-    fi
-    if [[ "$console_src" -eq 0 ]]; then
-        params+=(-console_src="ovgdb")
-    elif [[ "$console_src" -eq 1 ]]; then
-        params+=(-console_src="gdb")
-    else
-        params+=(-console_src="ss")
-    fi
-    if [[ "$mame_src" -eq 0 ]]; then
-        params+=(-mame_src="mamedb")
-    elif [[ "$mame_src" -eq 1 ]]; then
-        params+=(-mame_src="ss")
-    else
-        params+=(-mame_src="adb")
-    fi
-    if [[ "$rom_name" -eq 1 ]]; then
-        params+=(-use_nointro_name=false)
-    elif [[ "$rom_name" -eq 2 ]]; then
-        params+=(-use_filename=true)
-    fi
-    if [[ "$append_only" -eq 1 ]]; then
-        params+=(-append)
-    fi
+   # [[ "$system" =~ ^mame-|arcade|fba|neogeo ]] && params+=(-mame)
+
+#    if [[ "$use_thumbs" -eq 1 ]]; then
+#        params+=(-thumb_only)
+#    fi
+#    if [[ "$screenshots" -eq 1 ]]; then
+#        if [[ "$system" =~ ^mame-|arcade|fba|neogeo ]]; then
+#            params+=(-mame_img "s,m,t")
+#        else
+#            params+=(-console_img "s,b,3b,l,f")
+#        fi
+#    fi
+#    if [[ "$download_videos" -eq 1 ]]; then
+#        params+=(-download_videos)
+#    fi
+#    if [[ "$download_marquees" -eq 1 ]]; then
+#        params+=(-download_marquees)
+#    fi
+#    if [[ -n "$max_width" ]]; then
+#        params+=(-max_width "$max_width")
+#    fi
+#    if [[ -n "$max_height" ]]; then
+#        params+=(-max_height "$max_height")
+#    fi
+#    if [[ "$console_src" -eq 0 ]]; then
+#        params+=(-console_src="ovgdb")
+#    elif [[ "$console_src" -eq 1 ]]; then
+#        params+=(-console_src="gdb")
+#    else
+#        params+=(-console_src="ss")
+#    fi
+#    if [[ "$mame_src" -eq 0 ]]; then
+#        params+=(-mame_src="mamedb")
+#    elif [[ "$mame_src" -eq 1 ]]; then
+#        params+=(-mame_src="ss")
+#    else
+ #       params+=(-mame_src="adb")
+ #   fi
+ #   if [[ "$rom_name" -eq 1 ]]; then
+ #       params+=(-use_nointro_name=false)
+ #   elif [[ "$rom_name" -eq 2 ]]; then
+ #       params+=(-use_filename=true)
+ #   fi
+ #   if [[ "$append_only" -eq 1 ]]; then
+ #       params+=(-append)
+ #   fi
 
     # trap ctrl+c and return if pressed (rather than exiting retropie-setup etc)
     trap 'trap 2; return 1' INT
-    sudo -u $user "$md_inst/scraper" ${params[@]}
+    #echo "su $user -c python3 -u $md_inst/retroscraper.py ${params[@]}" >/tmp/test.txt
+    su $user -c "python3 -u $md_inst/retroscraper.py ${params[@]}"
     trap 2
 }
 
@@ -167,11 +171,11 @@ function scrape_chosen_retroscraper() {
 
     [[ ${#choice[@]} -eq 0 ]] && return
 
-    local choice
+    local choices
     for choice in "${choice[@]}"; do
-        choice=${options[choice*3-2]}
-        scrape_retroscraper "$choice" "$@"
+        choices+="${options[choice*3-2]},"
     done
+    scrape_retroscraper "$choices" "$@"
 }
 
 function _load_config_retroscraper() {

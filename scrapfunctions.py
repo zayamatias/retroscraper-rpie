@@ -1078,12 +1078,12 @@ def scanSystems(q,systems,apikey,uuid,companies,config,logging,remoteSystems,sel
         totalfiles = len(romfiles)
         sq = Queue()
         tq = Queue()
-        thread_list = [None]*6
+        thread_list = [None]*5
         queuefull = False
         havegames=[]
         gamecounter = 0
         while (currFileIdx < totalfiles):
-            for thrn in range (0,6):
+            for thrn in range (0,5):
                 logging.info ('###### CHECKING THREAD '+str(thrn)+' WHICH HAS VALUE '+str(thread_list[thrn]))
                 if thread_list[thrn]==None:
                     file =''
