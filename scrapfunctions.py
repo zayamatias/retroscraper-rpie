@@ -212,6 +212,8 @@ def loadConfig(logging,q,apikey,uuid,thn):
     config['config']["SystemsFile"]=""
     config['config']["MountPath"]=""
     config['config']['decorators']=dict()
+    return config
+    '''
     logging.info ('###### SETTING UP THREAD['+str(thn)+']')
     homedir = str(Path.home())+'/.retroscraper/'
     if not ospath.isdir(homedir):
@@ -253,6 +255,7 @@ def loadConfig(logging,q,apikey,uuid,thn):
     configret['downsites']=apicalls.getDownSites(apikey,uuid,'MAIN')
     logging.info ('++++++ '+str(configret)+' IN THREAD '+str(thn))
     return configret
+    '''
 
 def saveConfig(config,q):
     homedir = str(Path.home())+'/.retroscraper/'

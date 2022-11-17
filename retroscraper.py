@@ -59,17 +59,24 @@ if __name__ == '__main__':
     #parser.add_argument('--linkmedia', help='Creat media links to save space (only in Linux/RPI)',action='store_true')
     parser.add_argument('--systems', help='List of systems to scan (comma separated values)',nargs=1)
     parser.add_argument('--debug', help='Use for debugging purposes',action='store_true')
+    parser.add_argument('--listsystems', help='return a list of available systems',action='store_true')
     try:
         args = parser.parse_args()
         argsvals = vars(args)
     except argparse.ArgumentError as exc:
         print (exc.message, '\n', exc.argument)
-    print ('Loading RetroScraper config File')
+    try:
+        listsys = argsvals['listsystems']
+    except:
+        listsys=False
+    if not listsys:
+        print ('Loading RetroScraper config File')
     logging.info ('###### LOADING RETROSCRAPER CONFIG')
     q=Queue()
     apikey =globalapikey
     uuid = scrapfunctions.getUniqueID()
     config = scrapfunctions.loadConfig(logging,q,apikey,uuid,'MAIN')
+
     cli = True
     silent = True
 
@@ -184,12 +191,16 @@ if __name__ == '__main__':
             print ('There seems to be an error in your retroscraper config file, I cannot find the systems configuration file (usually something like es_systems.cfg)')
             logging.error('###### SYSTEMS FILE CANNOT BE FOUND '+str(config['config']['SystemsFile']))
             sysexit()
-    scrapfunctions.saveConfig(config,scanqueue)
-    print ('Loading systems from Backend')
+    if not listsys:
+        print ('Loading systems from Backend')
     logging.info ('###### LOADING SYSTEMS FROM BACKEND')
     remoteSystems = apicalls.getSystemsFromAPI(apikey,uuid,'MAIN')
     ## SYSTEM SELECTION TOGGLER
     systems = scrapfunctions.loadSystems(config,apikey,uuid,remoteSystems,q,trans,logging)
+    if listsys:
+        for system in systems:
+            print (system['name'])
+        sysexit(0)
     if not systemstoscan:
         print ('Scanning All Systems')
     else:
