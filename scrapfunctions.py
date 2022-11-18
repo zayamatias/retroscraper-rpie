@@ -698,8 +698,7 @@ def getFileInfo(file,system,companies,emptyGameTag,apikey,uuid,q,sq,config,loggi
                     gameName = gameName+' '+bmatch.replace('_',' ')
     except:
         logging.info ('###### NO BRACKET SELECTION CONFIGURED')
-    q.put(['gamelabel','text',' Game : '+gameName])
-    q.put(['gameimage','source',imglocation])
+    q.put(['gamelabel','text',' System : '+system['name']+' | Game : '+gameName])
     thisTag = thisTag.replace('$NAME',escape(gameName))
     description = 'Description for this game is empty!'
     founddesc = False
