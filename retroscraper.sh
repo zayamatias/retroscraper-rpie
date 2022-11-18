@@ -30,12 +30,12 @@ function build_retroscraper() {
 function install_retroscraper() {
     md_ret_files=(
     'apicalls.py'
-	'checksums.py'
-	'LICENSE'
-	'README.md'
-	'dependencies.txt'
-	'retroscraper.py'
-	'scrapfunctions.py'
+        'checksums.py'
+        'LICENSE'
+        'README.md'
+        'dependencies.txt'
+        'retroscraper.py'
+        'scrapfunctions.py'
     'setup.sh'
     )
 }
@@ -55,7 +55,6 @@ function latest_ver_retroscraper() {
 function list_systems_retroscraper() {
     su $user -c "python3 $md_inst/retroscraper.py --listsystems"
 }
-
 function scrape_retroscraper() {
     local system="$1"
 #    echo $system
@@ -65,83 +64,65 @@ function scrape_retroscraper() {
     iniConfig " = " '"' "$configdir/all/scraper.cfg"
     eval $(_load_config_retroscraper)
 
-#    local gamelist
-#    local img_dir
-#    local img_path
-#    if [[ "$use_rom_folder" -eq 1 ]]; then
-#        gamelist="$romdir/$system/gamelist.xml"
-#        img_dir="$romdir/$system/images"
-#        img_path="./images"
-#    else
-#        gamelist="$home/.emulationstation/gamelists/$system/gamelist.xml"
-#        img_dir="$home/.emulationstation/downloaded_images/$system"
-#        img_path="~/.emulationstation/downloaded_images/$system"
-#    fi
-
     local params="--systems $system"
 
-    #params+=(-image_dir "$img_dir")
-    #params+=(-image_path "$img_path")
-    ##params+=(-video_dir "$img_dir")
-    #params+=(-video_path "$img_path")
-    #params+=(-marquee_dir "$img_dir")
-    #params+=(-marquee_path "$img_path")
-    #params+=(-output_file "$gamelist")
-    #params+=(-rom_dir "$romdir/$system")
-    #params+=(-workers "4")
-    #params+=(-skip_check)
 
-   # [[ "$system" =~ ^mame-|arcade|fba|neogeo ]] && params+=(-mame)
+    if [[ "$nobackup" -eq 1 ]]; then
+        params+=(--nobackup)
+    fi
 
-#    if [[ "$use_thumbs" -eq 1 ]]; then
-#        params+=(-thumb_only)
-#    fi
-#    if [[ "$screenshots" -eq 1 ]]; then
-#        if [[ "$system" =~ ^mame-|arcade|fba|neogeo ]]; then
-#            params+=(-mame_img "s,m,t")
-#        else
-#            params+=(-console_img "s,b,3b,l,f")
-#        fi
-#    fi
-#    if [[ "$download_videos" -eq 1 ]]; then
-#        params+=(-download_videos)
-#    fi
-#    if [[ "$download_marquees" -eq 1 ]]; then
-#        params+=(-download_marquees)
-#    fi
-#    if [[ -n "$max_width" ]]; then
-#        params+=(-max_width "$max_width")
-#    fi
-#    if [[ -n "$max_height" ]]; then
-#        params+=(-max_height "$max_height")
-#    fi
-#    if [[ "$console_src" -eq 0 ]]; then
-#        params+=(-console_src="ovgdb")
-#    elif [[ "$console_src" -eq 1 ]]; then
-#        params+=(-console_src="gdb")
-#    else
-#        params+=(-console_src="ss")
-#    fi
-#    if [[ "$mame_src" -eq 0 ]]; then
-#        params+=(-mame_src="mamedb")
-#    elif [[ "$mame_src" -eq 1 ]]; then
-#        params+=(-mame_src="ss")
-#    else
- #       params+=(-mame_src="adb")
- #   fi
- #   if [[ "$rom_name" -eq 1 ]]; then
- #       params+=(-use_nointro_name=false)
- #   elif [[ "$rom_name" -eq 2 ]]; then
- #       params+=(-use_filename=true)
- #   fi
- #   if [[ "$append_only" -eq 1 ]]; then
- #       params+=(-append)
- #   fi
+    if [[ "relativepaths" -eq 1 ]]; then
+        params+=(--relativepaths)
+    fi
+
+    if [[ "$keepdata" -eq 1 ]]; then
+        params+=(--keepdata)
+    fi
+
+    if [[ "$preferbox" -eq 1 ]]; then
+        params+=(--preferbox)
+    fi
+
+    if [[ "$novideodown" -eq 1 ]]; then
+        params+=(--novideodown)
+    fi
+
+    if [[ "$country" -eq 1 ]]; then
+        params+=(--country)
+    fi
+
+    if [[ "$disk" -eq 1 ]]; then
+        params+=(--disk)
+    fi
+
+    if [[ "$version" -eq 1 ]]; then
+        params+=(--version)
+    fi
+
+    if [[ "$hack" -eq 1 ]]; then
+        params+=(--hack)
+    fi
+
+    if [[ "$brackets" -eq 1 ]]; then
+        params+=(--brackets)
+    fi
+
+    if [[ "$bezels" -eq 1 ]]; then
+        params+=(--bezels)
+    fi
+
+    if [[ "$sysbezels" -eq 1 ]]; then
+        params+=(--sysbezels)
+    fi
+    
+        if [[ "$cleanmedia" -eq 1 ]]; then
+        params+=(--cleanmedia)
+    fi
 
     # trap ctrl+c and return if pressed (rather than exiting retropie-setup etc)
     trap 'trap 2; return 1' INT
     #echo "su $user -c python3 -u $md_inst/retroscraper.py ${params[@]}" >/tmp/test.txt
-    su $user -c "python3 -u $md_inst/retroscraper.py ${params[@]}"
+    sudo -u $user python3 -u $md_inst/retroscraper.py ${params[@]}
     trap 2
 }
 
@@ -214,68 +195,81 @@ function gui_retroscraper() {
             2 "Scrape chosen systems"
         )
 
-        if [[ "$use_thumbs" -eq 1 ]]; then
-            options+=(3 "Thumbnails only (Enabled)")
+        if [[ "$nobackup" -eq 1 ]]; then
+            options+=(3 "Do not backup gamelists")
         else
-            options+=(3 "Thumbnails only (Disabled)")
+            options+=(3 "Backup gamelists")
         fi
 
-        if [[ "$screenshots" -eq 1 ]]; then
-            options+=(4 "Prefer screenshots (Enabled)")
+        if [[ "$relativepaths" -eq 0 ]]; then
+            options+=(4 "Use absolute paths in gamelists")
         else
-            options+=(4 "Prefer screenshots (Disabled)")
+            options+=(4 "Use relative paths in gamelists")
         fi
 
-        if [[ "$mame_src" -eq 0 ]]; then
-            options+=(5 "Arcade Source (MameDB)")
-        elif [[ "$mame_src" -eq 1 ]]; then
-            options+=(5 "Arcade Source (ScreenScraper)")
+        if [[ "$keepdata" -eq 0 ]]; then
+            options+=(5 "Discard last played/favorite data")
         else
-            options+=(5 "Arcade Source (ArcadeItalia)")
+            options+=(5 "Keep last played/favorite data")
         fi
 
-        if [[ "$console_src" -eq 0 ]]; then
-            options+=(6 "Console Source (OpenVGDB)")
-        elif [[ "$console_src" -eq 1 ]]; then
-            options+=(6 "Console Source (thegamesdb)")
+        if [[ "$preferbox" -eq 0 ]]; then
+            options+=(6 "Prefer screenshot as images")
         else
-            options+=(6 "Console Source (ScreenScraper)")
+            options+=(6 "Prefer boxes as images")
         fi
 
-        if [[ "$rom_name" -eq 0 ]]; then
-            options+=(7 "ROM Names (No-Intro)")
-        elif [[ "$rom_name" -eq 1 ]]; then
-            options+=(7 "ROM Names (theGamesDB)")
+        if [[ "$novideodown" -eq 0 ]]; then
+            options+=(7 "Download videos")
         else
-            options+=(7 "ROM Names (Filename)")
+            options+=(7 "Do not download videos")
         fi
 
-        if [[ "$append_only" -eq 1 ]]; then
-            options+=(8 "Gamelist (Append)")
+        if [[ "$country" -eq 0 ]]; then
+            options+=(8 "Do not add country decorator from filename")
         else
-            options+=(8 "Gamelist (Overwrite)")
+            options+=(8 "Add country decorator from filename")
         fi
 
-        if [[ "$use_rom_folder" -eq 1 ]]; then
-            options+=(9 "Use rom folder for gamelist & images (Enabled)")
+        if [[ "$disk" -eq 0 ]]; then
+            options+=(9  "Do not add disk decorator from filename")
         else
-            options+=(9 "Use rom folder for gamelist & images (Disabled)")
+            options+=(9 "Add disk decorator from filename")
         fi
 
-        if [[ "$download_videos" -eq 1 ]]; then
-            options+=(V "Download Videos (Enabled)")
+        if [[ "$version" -eq 0 ]]; then
+            options+=(A "Do not add version decorator from filename")
         else
-            options+=(V "Download Videos (Disabled)")
+            options+=(A "Add version decorator from filename")
         fi
 
-        if [[ "$download_marquees" -eq 1 ]]; then
-            options+=(M "Download Marquees (Enabled)")
+        if [[ "$hack" -eq 0 ]]; then
+            options+=(B  "Do not add hack decorator from filename")
         else
-            options+=(M "Download Marquees (Disabled)")
+            options+=(B "Add hack decorator from filename")
         fi
 
-        options+=(W "Max image width ($max_width)")
-        options+=(H "Max image height ($max_height)")
+        if [[ "$brackets" -eq 0 ]]; then
+            options+=(C  "Do not add info between brackets [] decorator from filename")
+        else
+            options+=(C  "Add info between brackets [] decorator from filename")
+        fi
+        if [[ "$bezels" -eq 0 ]]; then
+            options+=(D  "Do not download Bezels for games")
+        else
+            options+=(D  "Download Bezels for games")
+        fi
+        if [[ "$sysbezels" -eq 0 ]]; then
+            options+=(E  "Do not download system bezel if no game bezel found")
+        else
+            options+=(E  "Download system bezel if no game bezel found")
+        fi
+        if [[ "$cleanmedia" -eq 0 ]]; then
+            options+=(F  "Do not delete existing media")
+        else
+            options+=(F  "Delete existing media")
+        fi
+
         local choice=$("${cmd[@]}" "${options[@]}" 2>&1 >/dev/tty)
         if [[ -n "$choice" ]]; then
             default="$choice"
@@ -295,51 +289,58 @@ function gui_retroscraper() {
                     fi
                     ;;
                 3)
-                    use_thumbs="$((use_thumbs ^ 1))"
-                    iniSet "use_thumbs" "$use_thumbs"
+                    nobackup="$((nobackup ^ 1))"
+                    iniSet "nobackup" "$nobackup"
                     ;;
                 4)
-                    screenshots="$((screenshots ^ 1))"
-                    iniSet "screenshots" "$screenshots"
+                    relativepaths="$((relativepaths ^ 1))"
+                    iniSet "relativepaths" "$relativepaths"
                     ;;
                 5)
-                    mame_src="$((( mame_src + 1) % 3))"
-                    iniSet "mame_src" "$mame_src"
+                    keepdata="$((keepdata ^1))"
+                    iniSet "keepdata" "$keepdata"
                     ;;
                 6)
-                    console_src="$((( console_src + 1) % 3))"
-                    iniSet "console_src" "$console_src"
+                    preferbox="$((preferbox ^ 1))"
+                    iniSet "preferbox" "$preferbox"
                     ;;
                 7)
-                    rom_name="$((( rom_name + 1 ) % 3))"
-                    iniSet "rom_name" "$rom_name"
+                    novideodown="$((novideodown ^ 1))"
+                    iniSet "novideodown" "$novideodown"
                     ;;
                 8)
-                    append_only="$((append_only ^ 1))"
-                    iniSet "append_only" "$append_only"
+                    country="$((country ^ 1))"
+                    iniSet "country" "$country"
                     ;;
                 9)
-                    use_rom_folder="$((use_rom_folder ^ 1))"
-                    iniSet "use_rom_folder" "$use_rom_folder"
+                    disk="$((disk ^ 1))"
+                    iniSet "disk" "$disk"
                     ;;
-                V)
-                    download_videos="$((download_videos ^ 1))"
-                    iniSet "download_videos" "$download_videos"
+                A)
+                    version="$((version ^ 1))"
+                    iniSet "version" "$version"
                     ;;
-                M)
-                    download_marquees="$((download_marquees ^ 1))"
-                    iniSet "download_marquees" "$download_marquees"
+                B)
+                    hack="$((hack ^ 1))"
+                    iniSet "hack" "$hack"
                     ;;
-                H)
-                    cmd=(dialog --backtitle "$__backtitle" --inputbox "Please enter the max image height in pixels" 10 60 "$max_height")
-                    max_height=$("${cmd[@]}" 2>&1 >/dev/tty)
-                    iniSet "max_height" "$max_height"
+                C)
+                    brackets="$((brackets ^ 1))"
+                    iniSet "brackets" "$brackets"
                     ;;
-                W)
-                    cmd=(dialog --backtitle "$__backtitle" --inputbox "Please enter the max image width in pixels" 10 60 "$max_width")
-                    max_width=$("${cmd[@]}" 2>&1 >/dev/tty)
-                    iniSet "max_width" "$max_width"
+                D)
+                    bezels="$((bezels ^ 1))"
+                    iniSet "bezels" "$bezels"
                     ;;
+                E)
+                    sysbezels="$((sysbezels ^ 1))"
+                    iniSet "sysbezels" "$sysbezels"
+                    ;;
+                F)
+                    cleanmedia="$((cleanmedia ^ 1))"
+                    iniSet "cleanmedia" "$cleanmedia"
+                    ;;
+
             esac
         else
             break
