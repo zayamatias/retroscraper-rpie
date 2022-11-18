@@ -30,12 +30,12 @@ function build_retroscraper() {
 function install_retroscraper() {
     md_ret_files=(
     'apicalls.py'
-        'checksums.py'
-        'LICENSE'
-        'README.md'
-        'dependencies.txt'
-        'retroscraper.py'
-        'scrapfunctions.py'
+	'checksums.py'
+	'LICENSE'
+	'README.md'
+	'dependencies.txt'
+	'retroscraper.py'
+	'scrapfunctions.py'
     'setup.sh'
     )
 }
@@ -55,17 +55,28 @@ function latest_ver_retroscraper() {
 function list_systems_retroscraper() {
     su $user -c "python3 $md_inst/retroscraper.py --listsystems"
 }
+
+function list_langs_retroscraper(){
+    su $user -c "python3 $md_inst/retroscraper.py --listlangs"
+}
+
+
+
 function scrape_retroscraper() {
     local system="$1"
-#    echo $system
+    local params
 
-    [[ -z "$system" ]] && return
+       if [[ ! -z "$system" ]]; then
+        params="--systems $system"
+    fi
+   
+    if [[ ! -z "$lang" ]]; then
+        params+=" --language $lang"
+    fi
 
-    iniConfig " = " '"' "$configdir/all/scraper.cfg"
-    eval $(_load_config_retroscraper)
-
-    local params="--systems $system"
-
+    if [[ "$googletrans" -eq 1 ]]; then
+        params+=(--googletrans)
+    fi
 
     if [[ "$nobackup" -eq 1 ]]; then
         params+=(--nobackup)
@@ -114,15 +125,15 @@ function scrape_retroscraper() {
     if [[ "$sysbezels" -eq 1 ]]; then
         params+=(--sysbezels)
     fi
-    
-        if [[ "$cleanmedia" -eq 1 ]]; then
+
+    if [[ "$cleanmedia" -eq 1 ]]; then
         params+=(--cleanmedia)
     fi
 
     # trap ctrl+c and return if pressed (rather than exiting retropie-setup etc)
     trap 'trap 2; return 1' INT
     #echo "su $user -c python3 -u $md_inst/retroscraper.py ${params[@]}" >/tmp/test.txt
-    sudo -u $user python3 -u $md_inst/retroscraper.py ${params[@]}
+    su -c  "python3 -u $md_inst/retroscraper.py ${params[@]}" $user 2>&1 | dialog --backtitle "$__backtitle" --progressbox Scraping 22 76
     trap 2
 }
 
@@ -142,12 +153,7 @@ function scrape_chosen_retroscraper() {
         ((i++))
     done < <(list_systems_retroscraper)
 
-    if [[ ${#options[@]} -eq 0 ]] ; then
-        printMsgs "dialog" "No populated rom folders were found in $romdir."
-        return
-    fi
-
-    local cmd=(dialog --backtitle "$__backtitle" --checklist "Select ROM Folders" 22 76 16)
+    local cmd=(dialog --backtitle "$__backtitle" --checklist "Select Systems" 22 76 16)
     local choice=($("${cmd[@]}" "${options[@]}" 2>&1 >/dev/tty))
 
     [[ ${#choice[@]} -eq 0 ]] && return
@@ -157,6 +163,28 @@ function scrape_chosen_retroscraper() {
         choices+="${options[choice*3-2]},"
     done
     scrape_retroscraper "$choices" "$@"
+}
+
+function select_lang_retroscraper(){
+    local options=()
+    local language
+    local i=1
+    local lan
+    while IFS=',' read -r short desc
+    do
+        options+=("$short" "$desc" OFF)
+    done < <(list_langs_retroscraper)
+
+    local cmd=(dialog --backtitle "$__backtitle" --radiolist "Select Language" 22 76 16)
+    local choice=($("${cmd[@]}" "${options[@]}" 2>&1 >/dev/tty))
+
+    [[ ${#choice[@]} -eq 0 ]] && return
+
+    #local choices
+    #for choice in "${choice[@]}"; do
+    #    choices="${options[choice*3-2]},"
+    #done
+    echo "$choice"
 }
 
 function _load_config_retroscraper() {
@@ -194,6 +222,17 @@ function gui_retroscraper() {
             1 "Scrape all systems"
             2 "Scrape chosen systems"
         )
+
+        if [[ -z "$lang" ]]; then
+            options+=(L "Selected Language: en")
+        else
+            options+=(L "Selected Language: $lang")
+        fi
+        if [[ "$googletrans" -eq 0 ]]; then
+            options+=(G "Do not use google translate")
+        else
+            options+=(G "Use google translate for not found synopsis in selected language")
+        fi
 
         if [[ "$nobackup" -eq 1 ]]; then
             options+=(3 "Do not backup gamelists")
@@ -275,7 +314,7 @@ function gui_retroscraper() {
             default="$choice"
             case "$choice" in
                 1)
-                    if scrape_all_retroscraper; then
+                    if scrape_retroscraper; then
                         printMsgs "dialog" "ROMS have been scraped."
                     else
                         printMsgs "dialog" "Scraping was aborted"
@@ -288,7 +327,17 @@ function gui_retroscraper() {
                         printMsgs "dialog" "Scraping was aborted"
                     fi
                     ;;
-                3)
+
+                L)
+                    lang=$(select_lang_retroscraper)
+                    iniSet "lang" "$lang"
+                    ;;
+                G)
+                    googletrans="$((googletrans ^ 1))"
+                    iniSet "googletrans" "$googletrans"
+                    ;;
+ 
+		3)
                     nobackup="$((nobackup ^ 1))"
                     iniSet "nobackup" "$nobackup"
                     ;;
