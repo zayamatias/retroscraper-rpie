@@ -75,71 +75,65 @@ function scrape_retroscraper() {
     fi
 
     if [[ "$googletrans" -eq 1 ]]; then
-        params+=(--googletrans)
+        params+=" --google"
     fi
 
     if [[ "$nobackup" -eq 1 ]]; then
-        params+=(--nobackup)
+        params+=" --nobackup"
     fi
 
     if [[ "relativepaths" -eq 1 ]]; then
-        params+=(--relativepaths)
+        params+= "--relativepaths"
     fi
 
     if [[ "$keepdata" -eq 1 ]]; then
-        params+=(--keepdata)
+        params+=" --keepdata"
     fi
 
     if [[ "$preferbox" -eq 1 ]]; then
-        params+=(--preferbox)
+        params+=" --preferbox"
     fi
 
     if [[ "$novideodown" -eq 1 ]]; then
-        params+=(--novideodown)
+        params+=" --novideodown"
     fi
 
     if [[ "$country" -eq 1 ]]; then
-        params+=(--country)
+        params+=" --country"
     fi
 
     if [[ "$disk" -eq 1 ]]; then
-        params+=(--disk)
+        params+=" --disk"
     fi
 
     if [[ "$version" -eq 1 ]]; then
-        params+=(--version)
+        params+=" --version"
     fi
 
     if [[ "$hack" -eq 1 ]]; then
-        params+=(--hack)
+        params+=" --hack"
     fi
 
     if [[ "$brackets" -eq 1 ]]; then
-        params+=(--brackets)
+        params+=" --brackets"
     fi
 
     if [[ "$bezels" -eq 1 ]]; then
-        params+=(--bezels)
+        params+=" --bezels"
     fi
 
     if [[ "$sysbezels" -eq 1 ]]; then
-        params+=(--sysbezels)
+        params+=" --sysbezels"
     fi
 
     if [[ "$cleanmedia" -eq 1 ]]; then
-        params+=(--cleanmedia)
+        params+=" --cleanmedia"
     fi
 
     # trap ctrl+c and return if pressed (rather than exiting retropie-setup etc)
     trap 'trap 2; return 1' INT
-    #echo "su $user -c python3 -u $md_inst/retroscraper.py ${params[@]}" >/tmp/test.txt
-    su -c  "python3 -u $md_inst/retroscraper.py ${params[@]}" $user 2>&1 | dialog --backtitle "$__backtitle" --progressbox Scraping 22 76
-    trap 2
-}
-
-function scrape_all_retroscraper() {
-    trap 'trap 2; return 1' INT
-    su $user -c "python3 -u $md_inst/retroscraper.py"
+    #echo "su -c  python3 -u $md_inst/retroscraper.py ${params[@]} $user 2>&1 | dialog --backtitle "$__backtitle" --progressbox Scraping 22 76" > /tmp/test.txt
+    su $user -c  "python3 -u $md_inst/retroscraper.py ${params[@]}" $user 2>&1 | dialog --backtitle "$__backtitle" --progressbox "Scraping roms with RetroScraper" 22 76
     trap 2
 }
 
