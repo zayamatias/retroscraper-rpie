@@ -27,7 +27,24 @@ cli = False
 
 
 if __name__ == '__main__':
- 
+    supportedlanguages ={'af': 'afrikaans','sq': 'albanian','am': 'amharic','ar': 'arabic','hy': 'armenian','az': 'azerbaijani'\
+                    ,'eu': 'basque','be': 'belarusian','bn': 'bengali','bs': 'bosnian','bg': 'bulgarian','ca': 'catalan'\
+                    ,'ceb': 'cebuano','ny': 'chichewa','zh-cn': 'chinese (simplified)','zh-tw': 'chinese (traditional)'\
+                    ,'co': 'corsican','hr': 'croatian','cs': 'czech','da': 'danish','nl': 'dutch','en': 'english'\
+                    ,'eo': 'esperanto','et': 'estonian','tl': 'filipino','fi': 'finnish','fr': 'french','fy': 'frisian'\
+                    ,'gl': 'galician','ka': 'georgian','de': 'german','el': 'greek','gu': 'gujarati','ht': 'haitian creole'\
+                    ,'ha': 'hausa','haw': 'hawaiian','iw': 'hebrew','he': 'hebrew','hi': 'hindi','hmn': 'hmong'\
+                    ,'hu': 'hungarian','is': 'icelandic','ig': 'igbo','id': 'indonesian','ga': 'irish','it': 'italian'\
+                    ,'ja': 'japanese','jw': 'javanese','kn': 'kannada','kk': 'kazakh','km': 'khmer','ko': 'korean'\
+                    ,'ku': 'kurdish (kurmanji)','ky': 'kyrgyz','lo': 'lao','la': 'latin','lv': 'latvian','lt': 'lithuanian'\
+                    ,'lb': 'luxembourgish','mk': 'macedonian','mg': 'malagasy','ms': 'malay','ml': 'malayalam','mt': 'maltese'\
+                    ,'mi': 'maori','mr': 'marathi','mn': 'mongolian','my': 'myanmar (burmese)','ne': 'nepali','no': 'norwegian'\
+                    ,'or': 'odia','ps': 'pashto','fa': 'persian','pl': 'polish','pt': 'portuguese','pa': 'punjabi','ro': 'romanian'\
+                    ,'ru': 'russian','sm': 'samoan','gd': 'scots gaelic','sr': 'serbian','st': 'sesotho','sn': 'shona','sd': 'sindhi'\
+                    ,'si': 'sinhala','sk': 'slovak','sl': 'slovenian','so': 'somali','es': 'spanish','su': 'sundanese','sw': 'swahili'\
+                    ,'sv': 'swedish','tg': 'tajik','ta': 'tamil','te': 'telugu','th': 'thai','tr': 'turkish','uk': 'ukrainian'\
+                    ,'ur': 'urdu','ug': 'uyghur','uz': 'uzbek','vi': 'vietnamese','cy': 'welsh','xh': 'xhosa','yi': 'yiddish'\
+                    ,'yo': 'yoruba','zu': 'zulu'} 
     now = datetime.now()
     dts = now.strftime("%Y.%m.%d.%H.%M.%S")
     if not os.path.isdir(str(sysPath.home())+'/.retroscraper/imgtmp/'):
@@ -59,7 +76,8 @@ if __name__ == '__main__':
     #parser.add_argument('--linkmedia', help='Creat media links to save space (only in Linux/RPI)',action='store_true')
     parser.add_argument('--systems', help='List of systems to scan (comma separated values)',nargs=1)
     parser.add_argument('--debug', help='Use for debugging purposes',action='store_true')
-    parser.add_argument('--listsystems', help='return a list of available systems',action='store_true')
+    parser.add_argument('--listsystems', help='Return a list of available systems',action='store_true')
+    parser.add_argument('--listlangs', help='List available languages',action='store_true')
     try:
         args = parser.parse_args()
         argsvals = vars(args)
@@ -69,7 +87,11 @@ if __name__ == '__main__':
         listsys = argsvals['listsystems']
     except:
         listsys=False
-    if not listsys:
+    try:
+        listlangs = argsvals['listlangs']
+    except:
+        listlangs=False
+    if not listsys and not listlangs:
         print ('Loading RetroScraper config File')
     logging.info ('###### LOADING RETROSCRAPER CONFIG')
     q=Queue()
@@ -194,7 +216,7 @@ if __name__ == '__main__':
             print ('There seems to be an error in your retroscraper config file, I cannot find the systems configuration file (usually something like es_systems.cfg)')
             logging.error('###### SYSTEMS FILE CANNOT BE FOUND '+str(config['config']['SystemsFile']))
             sysexit()
-    if not listsys:
+    if not listsys and not listlangs:
         print ('Loading systems from Backend')
     logging.info ('###### LOADING SYSTEMS FROM BACKEND')
     remoteSystems = apicalls.getSystemsFromAPI(apikey,uuid,'MAIN')
@@ -203,6 +225,10 @@ if __name__ == '__main__':
     if listsys:
         for system in systems:
             print (system['name'])
+        sysexit(0)
+    if listlangs:
+        for short,desc in supportedlanguages.items():
+            print (short+','+desc)
         sysexit(0)
     if not systemstoscan:
         print ('Scanning All Systems')
