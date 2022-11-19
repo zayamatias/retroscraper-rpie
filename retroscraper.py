@@ -49,10 +49,8 @@ if __name__ == '__main__':
     dts = now.strftime("%Y.%m.%d.%H.%M.%S")
     if not os.path.isdir(str(sysPath.home())+'/.retroscraper/imgtmp/'):
         os.makedirs(str(sysPath.home())+'/.retroscraper/imgtmp/')
-        print ('Starting retroscraper - be Patient :-)')
     if not os.path.isdir(str(sysPath.home())+'/.retroscraper/filetmp/'):
         os.makedirs(str(sysPath.home())+'/.retroscraper/filetmp/')
-        print ('Starting retroscraper - be Patient :-)')
     logging.basicConfig(filename=str(sysPath.home())+'/.retroscraper/retroscraper'+dts+'.log', level=logging.ERROR)
     parser = ArgumentParser(description='RetroScraper...supercharge your roms with metadata!')
     parser.add_argument('--systemsfile', help='location of the es_systems.cfg file)',nargs=1)
