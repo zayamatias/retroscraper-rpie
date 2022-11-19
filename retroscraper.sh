@@ -133,7 +133,8 @@ function scrape_retroscraper() {
     # trap ctrl+c and return if pressed (rather than exiting retropie-setup etc)
     trap 'trap 2; return 1' INT
     #echo "su -c  python3 -u $md_inst/retroscraper.py ${params[@]} $user 2>&1 | dialog --backtitle "$__backtitle" --progressbox Scraping 22 76" > /tmp/test.txt
-    su $user -c  "python3 -u $md_inst/retroscraper.py ${params[@]}" $user 2>&1 | dialog --backtitle "$__backtitle" --progressbox "Scraping roms with RetroScraper" 22 76
+    local cmd=(dialog --backtitle "$__backtitle" --prgbox "Scraping roms with RetroScraper" "su $user -c  'python3 -u $md_inst/retroscraper.py ${params[@]}'" 22 76)
+    local choice=$("${cmd[@]}" 2>&1 >/dev/tty)
     trap 2
 }
 
@@ -308,20 +309,11 @@ function gui_retroscraper() {
             default="$choice"
             case "$choice" in
                 1)
-                    if scrape_retroscraper; then
-                        printMsgs "dialog" "ROMS have been scraped."
-                    else
-                        printMsgs "dialog" "Scraping was aborted"
-                    fi
+                    scrape_retroscraper
                     ;;
                 2)
-                    if scrape_chosen_retroscraper; then
-                        printMsgs "dialog" "ROMS have been scraped."
-                    else
-                        printMsgs "dialog" "Scraping was aborted"
-                    fi
+                    scrape_chosen_retroscraper
                     ;;
-
                 L)
                     lang=$(select_lang_retroscraper)
                     iniSet "lang" "$lang"
