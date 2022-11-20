@@ -133,7 +133,7 @@ function scrape_retroscraper() {
     # trap ctrl+c and return if pressed (rather than exiting retropie-setup etc)
     trap 'trap 2; return 1' INT
     #echo "su -c  python3 -u $md_inst/retroscraper.py ${params[@]} $user 2>&1 | dialog --backtitle "$__backtitle" --progressbox Scraping 22 76" > /tmp/test.txt
-    local cmd=(dialog --backtitle "$__backtitle" --prgbox "Scraping roms with RetroScraper" "su $user -c  'python3 -u $md_inst/retroscraper.py ${params[@]}'" 22 76)
+    local cmd=(dialog --backtitle "$__backtitle" --prgbox "Scraping roms with RetroScraper" "su $user -c  'python3 $md_inst/retroscraper.py ${params[@]}'" 22 76)
     local choice=$("${cmd[@]}" 2>&1 >/dev/tty)
     trap 2
 }

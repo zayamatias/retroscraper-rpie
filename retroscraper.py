@@ -89,8 +89,6 @@ if __name__ == '__main__':
         listlangs = argsvals['listlangs']
     except:
         listlangs=False
-    if not listsys and not listlangs:
-        print ('Loading RetroScraper config File')
     logging.info ('###### LOADING RETROSCRAPER CONFIG')
     q=Queue()
     apikey =globalapikey
@@ -214,8 +212,6 @@ if __name__ == '__main__':
             print ('There seems to be an error in your retroscraper config file, I cannot find the systems configuration file (usually something like es_systems.cfg)')
             logging.error('###### SYSTEMS FILE CANNOT BE FOUND '+str(config['config']['SystemsFile']))
             sysexit()
-    if not listsys and not listlangs:
-        print ('Loading systems from Backend')
     logging.info ('###### LOADING SYSTEMS FROM BACKEND')
     remoteSystems = apicalls.getSystemsFromAPI(apikey,uuid,'MAIN')
     ## SYSTEM SELECTION TOGGLER
@@ -228,15 +224,10 @@ if __name__ == '__main__':
         for short,desc in supportedlanguages.items():
             print (short+','+desc)
         sysexit(0)
-    if not systemstoscan:
-        print ('Scanning All Systems')
-    else:
-        print ('Scanning Systems '+str(systemstoscan))
-    print ('Loading companies from backend')
     logging.info ('###### LOADING COMPANIES FROM BACKEND THREAD[MAIN]')
     companies = scrapfunctions.loadCompanies(apikey,uuid,'MAIN')
     rompath = scrapfunctions.getAbsRomPath(systems[0]['path'],'MAIN')
-    print ('Starting scraping')
+    print ('Starting scraping', flush=True)
     logging.info ('###### STARTING SCRAPPING ')
     logging.info ('STARTING THREADS')
     thread = Thread(target= scrapfunctions.scanSystems,args=(q,systems,apikey,uuid,companies,config,logging,remoteSystems,systemstoscan,scanqueue,rompath,trans,'MAIN',True))
@@ -253,10 +244,10 @@ if __name__ == '__main__':
                 pass
             if qu[0].lower()=='syslabel':
                 system = qu[2].strip().replace('\n',' ')
-                print ('SYSTEM '+system)
+                print ('SYSTEM '+system, flush=True)
             if qu[0].lower()=='gamelabel':
                 game = qu[2].strip().replace('\n',' ')
-                print (game)
+                print (game, flush=True)
         except Exception as e:
             pass
         sleep(0.01)
