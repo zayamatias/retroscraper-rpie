@@ -17,12 +17,17 @@ from time import sleep
 from googletrans import Translator
 from pathlib import Path as Path
 import os
+import subprocess
+from sys import platform
 
 def removedir(config,path,logging,thn):
     if path=='/' or path=='.' or path =='':
         print ('ABORTING, RISK OF BREAKING THE SYSTEM!',flush=True)
         sysexit(1)
-    rmtree(path)
+    if platform == "linux" or platform == "linux2":
+        subprocess.call(['rm','-rf',path])
+    else:
+        rmtree(path)
 
 def pathExists(config,path,logging,thn):
     return ospath.isdir(path)
@@ -1035,7 +1040,7 @@ def scanSystems(q,systems,apikey,uuid,companies,config,logging,remoteSystems,sel
             saveConfig(config,q)
         if config['config']['cleanmedia']:
             try:
-                print ('Deleing Images')
+                print ('Deleting Images')
                 #q.put(['gamelabel','text','DELETING IMAGES'])
                 if config['config']['fixedmediadir']:
                     if config['config']['fixedmediadir'][0]=='/':
@@ -1174,7 +1179,7 @@ def scanSystems(q,systems,apikey,uuid,companies,config,logging,remoteSystems,sel
             if (gamecounter == 100) or finishedthreads:
                 havegames = havegames + writeXML(sq,writeFile,q)
                 gamecounter = 0
-        havegames = havegames + writeXML(sq,writeFile,q)
+        #havegames = havegames + writeXML(sq,writeFile,q)
         logging.info ('###### CLOSING GAMELIST.XML IN THREAD '+str(thn))
         writeFile.write("\n</gameList>")
         logging.info ('###### FILE CLOSING GAMELIST.XML IN THREAD '+str(thn))
