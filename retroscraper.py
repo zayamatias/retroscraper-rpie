@@ -57,7 +57,7 @@ if __name__ == '__main__':
     parser.add_argument('--nobackup', help='Do not backup gamelist.xml file',action='store_true')
     parser.add_argument('--relativepaths', help='Use relative paths instead of full paths',action='store_true')
     parser.add_argument('--recursive', help='Search subdirctories in systems paths',action='store_true')
-    parser.add_argument('--mediadir', help='Single media dir wwhere all media is going to be stored, strat with \'/\' for absolute path, otherwise relative to system path',nargs=1)
+    parser.add_argument('--mediadir', help='Single media dir wwhere all media is going to be stored, strat with \'/\' for absolute path (this will append the system name autoamtically), otherwise relative to system path',nargs=1)
     parser.add_argument('--keepdata', help='Keep favorites and play count of your games',action='store_true')
     parser.add_argument('--preferbox', help='Prefer boxes instead of screenshots',action='store_true')
     parser.add_argument('--novideodown', help='Do not download videos',action='store_true')
@@ -168,7 +168,7 @@ if __name__ == '__main__':
         config['config']['cleanmedia']= False
 
     try:
-        fixedmediadir = argsvals['mediadir'][0].lower()
+        fixedmediadir = argsvals['mediadir'][0]
         if fixedmediadir:
             if fixedmediadir[-1] != '/':
                 fixedmediadir=fixedmediadir+'/'
