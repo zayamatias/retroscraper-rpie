@@ -24,7 +24,16 @@ function sources_retroscraper() {
 }
 
 function build_retroscraper() {
- su $user "$md_build/setup.sh" $md_build
+pip=$( su $user -c "python3 -c 'import pip'" 2>&1 )
+succ="ModuleNotFoundError"
+echo "----------------------------------"
+echo "$pip"
+if [[ $pip == *"$succ"* ]]; then
+   su $user -c "wget https://bootstrap.pypa.io/get-pip.py -O /tmp/get-pip.py"
+   su $user -c "python3 /tmp/get-pip.py"
+fi
+   su $user -c "python3 -m pip install --user --upgrade pip wheel setuptools"
+   su $user -c "python3 -m pip install --user -r $md_inst/dependencies.txt"
 }
 
 function install_retroscraper() {
