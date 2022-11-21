@@ -917,6 +917,7 @@ def writeXML(sq,writeFile,q):
 
 
 def fileProcess(currFileIdx,romfiles,currglvalues,system,q,sq):
+    #Get the rom file in the list atposition currFileIdx and validate is usable
     file = str(romfiles[currFileIdx])
     try:
         logging.info ('####### STARTING WITH FILE '+str(file))
@@ -1077,48 +1078,69 @@ def scanSystems(q,systems,apikey,uuid,companies,config,logging,remoteSystems,sel
         totalfiles = len(romfiles)
         sq = Queue()
         tq = Queue()
-        thread_list = [None]*5
-        queuefull = False
+        nthrds = 5
+        thread_list = [None]*nthrds
         havegames=[]
         gamecounter = 0
-        while (currFileIdx < totalfiles):
-            for thrn in range (0,5):
-                logging.info ('###### CHECKING THREAD '+str(thrn)+' WHICH HAS VALUE '+str(thread_list[thrn]))
-                if thread_list[thrn]==None:
-                    file =''
-                    while file =='':
-                        if (currFileIdx < totalfiles):
-                            file,filext,oldValues = fileProcess(currFileIdx,romfiles,currglvalues,system,q,sq)
-                            currFileIdx = currFileIdx+1
-                        else:
-                            break
-                    if file =='':
-                        break
-                    try:
-                        showfile = file.encode().decode('utf-8')
-                    except Exception as e:
-                        logging.info('###### EXCEPTION '+str(e)+' IN THREAD '+str(thrn))
-                        showfile = ''
-                    logging.info ('###### STARTING FILE '+showfile+' IN THREAD '+str(thrn))
-                    uthrn = (int(system['id'][0])*100000)+(currFileIdx*10)+thrn
-                    thread = Thread(target=getFileInfo,args=(file,system,companies,emptyGameTag,apikey,uuid,q,sq,config,logging,filext,tq,uthrn,oldValues,thrn,cli))
-                    thread_list[thrn]=thread
+        alldone = False
+        finishedthreads=False
+        #initialize threads
+        for thrn in range (0,nthrds):
+            logging.info ('###### CHECKING THREAD '+str(thrn)+' WHICH HAS VALUE '+str(thread_list[thrn]))
+            file =''
+            while file =='' and (not alldone):
+                if (currFileIdx < totalfiles):
+                    file,filext,oldValues = fileProcess(currFileIdx,romfiles,currglvalues,system,q,sq)
+                    currFileIdx = currFileIdx+1
+                else:
+                    alldone=True
+            if not alldone:
+                try:
                     logging.info ('###### CHECKING THREAD '+str(thrn)+' WHICH HAS VALUE '+str(thread_list[thrn]))
+                    showfile = file.encode().decode('utf-8')
+                except:
+                    logging.info('###### EXCEPTION '+str(e)+' IN THREAD '+str(thrn))
+                    showfile = ''
+                logging.info ('###### STARTING FILE '+showfile+' IN THREAD '+str(thrn))
+                uthrn = (int(system['id'][0])*100000)+(currFileIdx*10)+thrn
+                thread = Thread(target=getFileInfo,args=(file,system,companies,emptyGameTag,apikey,uuid,q,sq,config,logging,filext,tq,uthrn,oldValues,thrn,cli))
+                thread_list[thrn]=thread
+                thread.start()
+                gamecounter = gamecounter +1
+        while not finishedthreads:
+            try:
+                value = tq.get_nowait()
+                logging.info ('###### QUEUE VALUE '+str(value) )
+                thread_list[value].join()
+                thread_list[value]=None
+                ## There is an empty thread, run it!
+                file =''
+                while file =='' and (not alldone):
+                    if (currFileIdx < totalfiles):
+                        file,filext,oldValues = fileProcess(currFileIdx,romfiles,currglvalues,system,q,sq)
+                        currFileIdx = currFileIdx+1
+                    else:
+                        alldone = True
+                if not alldone:
+                    try:
+                        logging.info ('###### CHECKING THREAD '+str(value)+' WHICH HAS VALUE '+str(thread_list[value]))
+                        showfile = file.encode().decode('utf-8')
+                    except:
+                        logging.info('###### EXCEPTION '+str(e)+' IN THREAD '+str(value))
+                        showfile = ''
+                    logging.info ('###### STARTING FILE '+showfile+' IN THREAD '+str(value))
+                    uthrn = (int(system['id'][0])*100000)+(currFileIdx*10)+value
+                    thread = Thread(target=getFileInfo,args=(file,system,companies,emptyGameTag,apikey,uuid,q,sq,config,logging,filext,tq,uthrn,oldValues,value,cli))
+                    thread_list[value]=thread
                     thread.start()
                     gamecounter = gamecounter +1
-                    if gamecounter == 1000:
-                        havegames = havegames + writeXML(sq,writeFile,q)
-                        gamecounter = 0
-                    sleep (0.1)
-            while any(thread_list):
-                try:
-                    value = tq.get_nowait()
-                    logging.info ('###### QUEUE VALUE '+str(value) )
-                    thread_list[value].join()
-                    thread_list[value]=None
-                    sleep(0.1)
-                except:
-                    pass
+                if (not any(thread_list)) and alldone:
+                    finishedthreads=True
+            except:
+                pass
+            if (gamecounter == 100) or finishedthreads:
+                havegames = havegames + writeXML(sq,writeFile,q)
+                gamecounter = 0
         havegames = havegames + writeXML(sq,writeFile,q)
         logging.info ('###### CLOSING GAMELIST.XML IN THREAD '+str(thn))
         writeFile.write("\n</gameList>")
