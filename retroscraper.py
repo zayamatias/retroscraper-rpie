@@ -57,6 +57,7 @@ if __name__ == '__main__':
     parser.add_argument('--nobackup', help='Do not backup gamelist.xml file',action='store_true')
     parser.add_argument('--relativepaths', help='Use relative paths instead of full paths',action='store_true')
     parser.add_argument('--recursive', help='Search subdirctories in systems paths',action='store_true')
+    parser.add_argument('--mediadir', help='Single media dir wwhere all media is going to be stored, strat with \'/\' for absolute path, otherwise relative to system path',nargs=1)
     parser.add_argument('--keepdata', help='Keep favorites and play count of your games',action='store_true')
     parser.add_argument('--preferbox', help='Prefer boxes instead of screenshots',action='store_true')
     parser.add_argument('--novideodown', help='Do not download videos',action='store_true')
@@ -167,12 +168,34 @@ if __name__ == '__main__':
         config['config']['cleanmedia']= False
 
     try:
+        fixedmediadir = argsvals['mediadir'][0].lower()
+        if fixedmediadir:
+            if fixedmediadir[-1] != '/':
+                fixedmediadir=fixedmediadir+'/'
+            if fixedmediadir[0]!='/':
+                if './' not in fixedmediadir:
+                    if fixedmediadir[0]!='.':
+                        fixedmediadir='.'+fixedmediadir
+                    if fixedmediadir[1]!='/':
+                        fixedmediadir=fixedmediadir[0]+'/'+fixedmediadir[1:]
+            else:
+                if not os.path.exists(fixedmediadir):
+                    try:
+                        result = os.makedirs(fixedmediadir)
+                    except Exception as e:
+                        print ('CANNOT CREATE DIRECTORY ['+fixedmediadir+'] - ERROR ['+str(e)+'] - PLS VERIFY AND TRY AGAIN')
+                        sysexit(1)
+    except:
+        fixedmediadir =''
+    config['config']['fixedmediadir']=fixedmediadir
+    try:
         systemstoscanstr = argsvals['systems'][0].lower()
         if systemstoscanstr[-1]==',':
             systemstoscanstr=systemstoscanstr[:-1]
         systemstoscan=systemstoscanstr.split(',')
     except:
         systemstoscan = []
+    
     try:
         config['config']['SystemsFile']= argsvals['systemsfile'][0]
     except:
@@ -236,20 +259,20 @@ if __name__ == '__main__':
     game=''
     scrapping = True
     while scrapping:
-        try:
-            qu = q.get_nowait()
-            if qu[0].lower()=='scrappb' and qu[1].lower()=='max':
-                pass
-            if qu[0].lower()=='scrappb' and qu[1].lower()=='valueincrease':
-                pass
-            if qu[0].lower()=='syslabel':
-                system = qu[2].strip().replace('\n',' ')
-                print ('SYSTEM '+system, flush=True)
-            if qu[0].lower()=='gamelabel':
-                game = qu[2].strip().replace('\n',' ')
-                print (game, flush=True)
-        except Exception as e:
-            pass
+        #try:
+        #    qu = q.get_nowait()
+        #    if qu[0].lower()=='scrappb' and qu[1].lower()=='max':
+        #        pass
+        #    if qu[0].lower()=='scrappb' and qu[1].lower()=='valueincrease':
+        #        pass
+        #    if qu[0].lower()=='syslabel':
+        #        system = qu[2].strip().replace('\n',' ')
+        #         print ('SYSTEM '+system, flush=True)
+        #    if qu[0].lower()=='gamelabel':
+        #        game = qu[2].strip().replace('\n',' ')
+        #        print (game, flush=True)
+        #except Exception as e:
+        #    pass
         sleep(0.01)
         if not thread.is_alive():
             scrapping= False

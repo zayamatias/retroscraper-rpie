@@ -19,6 +19,9 @@ from pathlib import Path as Path
 import os
 
 def removedir(config,path,logging,thn):
+    if path=='/' or path=='.' or path =='':
+        print ('ABORTING, RISK OF BREAKING THE SYSTEM!')
+        sysexit(1)
     rmtree(path)
 
 def pathExists(config,path,logging,thn):
@@ -213,49 +216,6 @@ def loadConfig(logging,q,apikey,uuid,thn):
     config['config']["MountPath"]=""
     config['config']['decorators']=dict()
     return config
-    '''
-    logging.info ('###### SETTING UP THREAD['+str(thn)+']')
-    homedir = str(Path.home())+'/.retroscraper/'
-    if not ospath.isdir(homedir):
-        try:
-            makedirs(homedir)
-            logging.info ('####### CREATED HOMEDIR DIRECTORY IN THREAD '+str(thn))
-        except Exception as e:
-            logging.error ('###### ERROR SAVING CONFIG IN '+str(homedir)+'  ERROR '+str(e)+' IN THREAD '+str(thn))
-            q.put('CONFIG ERROR!','popup','I CANNOT CREATE A CONFIG FILE '+str(e))
-            return config
-    configfilename= homedir+'retroscraper.cfg'
-    if not ospath.isfile(configfilename):
-        try:
-            logging.info ('###### CONFIG FILE DOES NOT EXIST, CREATING ONE IN THREAD '+str(thn))
-            f = open(configfilename, "w")
-            logging.info ('###### CONFIG FILE DOES NOT EXIST, CREATED ONE IN THREAD '+str(thn))
-            f.write(jsondumps(config['config']))
-            logging.info ('###### CONFIG FILE DOES NOT EXIST, CLOSING ONE IN THREAD '+str(thn))
-            f.close()
-            return config
-        except Exception as e:
-            q.put('CONFIG ERROR!','popup','I CANNOT CREATE A CONFIG FILE '+str(e))
-            return config
-            
-    logging.info ('###### READING CONFIG FILE IN THREAD '+str(thn))
-    f = open(configfilename, "r")
-    configret = dict()
-    try:
-        logging.info ('###### READING CONFIG FILE INTO JSON IN THREAD '+str(thn))
-        configret['config'] = jsonloads(f.read())
-        logging.info ('###### SUCCESS IN THREAD '+str(thn))
-        f.close()
-    except Exception as e:
-        logging.info ('###### FAILURE, CREATING EMPTY CONFIG IN THREAD '+str(thn))
-        configret['config']=dict()
-        f.close()
-        saveConfig(configret,q)
-    logging.info ('###### RETURNING CONFIG IN THREAD '+str(thn))
-    configret['downsites']=apicalls.getDownSites(apikey,uuid,'MAIN')
-    logging.info ('++++++ '+str(configret)+' IN THREAD '+str(thn))
-    return configret
-    '''
 
 def saveConfig(config,q):
     homedir = str(Path.home())+'/.retroscraper/'
@@ -265,7 +225,7 @@ def saveConfig(config,q):
         f.write(jsondumps(config['config']))
         f.close()
     except Exception as e:
-        q.put('CONFIG ERROR!','popup','I CANNOT CREATE A CONFIG FILE '+str(e))
+        print('CONFIG ERROR! - I CANNOT CREATE A CONFIG FILE '+str(e))
         return config
     return
 
@@ -366,7 +326,7 @@ def loadSystems(config,apikey,uuid,remoteSystems,q,trans,logging):
         tst.close()
     except:
         logging.error ('###### CANNOT READ SYSTEMS FILE!')
-        q.put(['errorlabel','text','Cannot read systems file!'])
+        print('Cannot read systems file!')
         return 'XMLERROR'
     with open(config['config']['SystemsFile'], 'r') as xml_file:
         logging.info ('###### OPENED FILE')
@@ -490,24 +450,25 @@ def bracketmatch(filename):
     matchs = findall(checkreg,filename)
     return matchs
 
-def getMediaUrl(mediapath,file,medias,mediaList,logging,thn,regionList=['wor']):
+def getMediaUrl(mediapath,file,medias,mediaList,logging,thn,typeofmedia,regionList=['wor']):
     imageURL = ''
     destfile =''
-    for mediatype in mediaList:
-        for region in regionList:
-            for img in medias:
-                #logging.info('####### MEDIATYPE '+str(mediatype)+'   IMG VALUES '+str(img.values()))
-                if mediatype=='box-2D':
-                    if mediatype in img.values():
-                        destfile = mediapath+file+'.'+img['format']
-                        imageURL = img['url'].replace(img['region'],'wor')
-                        logging.info ('###### RETURNING '+imageURL+' THREAD['+str(thn)+']')
-                        return imageURL,destfile
-                else:
-                    if mediatype in img.values() and region in img.values():
-                        destfile = mediapath+file+'.'+img['format']
-                        imageURL = img['url']
-                        return imageURL,destfile
+    if medias:
+        for mediatype in mediaList:
+            for region in regionList:
+                for img in medias:
+                    #logging.info('####### MEDIATYPE '+str(mediatype)+'   IMG VALUES '+str(img.values()))
+                    if mediatype=='box-2D':
+                        if mediatype in img.values():
+                            destfile = mediapath+file+'-box.'+img['format']
+                            imageURL = img['url'].replace(img['region'],'wor')
+                            logging.info ('###### RETURNING '+imageURL+' THREAD['+str(thn)+']')
+                            return imageURL,destfile
+                    else:
+                        if mediatype in img.values() and region in img.values():
+                            destfile = mediapath+file+'-'+typeofmedia+'.'+img['format']
+                            imageURL = img['url']
+                            return imageURL,destfile
     return imageURL,destfile
 
 
@@ -557,6 +518,13 @@ def getFileInfo(file,system,companies,emptyGameTag,apikey,uuid,q,sq,config,loggi
         showsfile =''
     logging.info ('###### SIMPLE FILE NAME :['+str(showsfile)+'] THREAD['+str(thn)+']')
     system['path'] = system['path'].replace('\\','/')
+    if config['config']['fixedmediadir']:
+        if config['config']['fixedmediadir'][0]=='/':
+            mediadestdir = config['config']['fixedmediadir']+system['name']+'/'
+        else:
+            mediadestdir = system['path']+config['config']['fixedmediadir'][2:]
+    else:
+        mediadestdir = system['path']+'images/'
     try:
         pfbx =  config['config']['preferbox']
     except:
@@ -564,24 +532,28 @@ def getFileInfo(file,system,companies,emptyGameTag,apikey,uuid,q,sq,config,loggi
     if not pfbx:
         logging.info ('###### DOWNLOADING SCREENSHOT THREAD['+str(thn)+']')
         try:
-            imageURL,destimage = getMediaUrl(system['path']+'images/',simplefile,result['game']['medias'],['mixrbv1','ss','sstitle'],logging,thn,['wor','default'])
+            imageURL,destimage = getMediaUrl(mediadestdir,simplefile,result['game']['medias'],['mixrbv1','ss','sstitle'],logging,thn,'image',['wor','default'])
         except Exception as e:
             logging.error ('##### EFRROR WHEN DOWNLOADING IMAGES ['+str(result)+']]#####=='+str(e))
     else:
         logging.info ('###### DOWNLOADING BOX')
-        imageURL,destimage = getMediaUrl(system['path']+'images/',simplefile,result['game']['medias'],['box-2D'],logging,thn,['wor'])
+        imageURL,destimage = getMediaUrl(mediadestdir,simplefile,result['game']['medias'],['box-2D'],logging,thn,'box',['wor'])
     try:
         novi =  config['config']['novideodown']
     except:
         novi = False
     if not novi:
         logging.info ('###### DOWNLOADING VIDEO THREAD['+str(thn)+']')
-        videoURL,destvideo = getMediaUrl(system['path']+'videos/',simplefile,result['game']['medias'],['video-normalized'],logging,thn,['wor','default'])
+        if not config['config']['fixedmediadir']:
+            mediadestdir = system['path']+'videos/'
+        videoURL,destvideo = getMediaUrl(mediadestdir,simplefile,result['game']['medias'],['video-normalized'],logging,thn,'video',['wor','default'])
     else:
         logging.info ('###### NOT DOWNLOADING VIDEO THREAD['+str(thn)+']')
         videoURL = ''
         destvideo = ''
-    marqueeURL,destmarquee = getMediaUrl(system['path']+'marquees/',simplefile,result['game']['medias'],['screenmarqueesmall'],logging,thn,['wor','default',])
+    if not config['config']['fixedmediadir']:
+        mediadestdir = system['path']+'marquees/'
+    marqueeURL,destmarquee = getMediaUrl(mediadestdir,simplefile,result['game']['medias'],['screenmarqueesmall'],logging,thn,'marquee',['wor','default',])
     try:
         dobezels = config['config']['bezels']
     except:
@@ -593,14 +565,14 @@ def getFileInfo(file,system,companies,emptyGameTag,apikey,uuid,q,sq,config,loggi
         logging.info ('###### FIRST CASE THREAD['+str(thn)+']')
         dpath = system['path'].replace('/roms/','/overlays/')+'bezels/'
         logging.info ('###### CONVERTING '+str(system['path'])+'    '+dpath+' THREAD['+str(thn)+']')
-        bezelURL,destbezel = getMediaUrl(dpath,simplefile,result['game']['medias'],['bezel-16-9'],logging,thn,['wor','default'])
+        bezelURL,destbezel = getMediaUrl(dpath,simplefile,result['game']['medias'],['bezel-16-9'],logging,thn,'bezel',['wor','default'])
         if destbezel=='' and config['config']['sysbezels']: ## CONFIG UPDATE
             sysmedias=[{"url": "/api/medias/"+str(gsysid)+"/system/bezel-16-9(wor).png",
             "region": "wor",
             "type": "bezel-16-9",
             "format": "png"
             }]
-            bezelURL,destbezel = getMediaUrl(system['path'].replace('/roms/','/overlays/')+'bezels/','system_bezel-'+str(gsysid),sysmedias,['bezel-16-9'],logging,thn,['wor','default'])
+            bezelURL,destbezel = getMediaUrl(system['path'].replace('/roms/','/overlays/')+'bezels/','system_bezel-'+str(gsysid),sysmedias,['bezel-16-9'],logging,thn,'bezel',['wor','default'])
         logging.info ('++++++++++++++++ BACK FROM BEZELS THREAD['+str(thn)+']')
     else:
         bezelURL=''
@@ -698,7 +670,9 @@ def getFileInfo(file,system,companies,emptyGameTag,apikey,uuid,q,sq,config,loggi
                     gameName = gameName+' '+bmatch.replace('_',' ')
     except:
         logging.info ('###### NO BRACKET SELECTION CONFIGURED')
-    q.put(['gamelabel','text',' System : '+system['name']+' | Game : '+gameName])
+    ## TRY PRINT I/OF QUEUE
+    #q.put(['gamelabel','text',' System : '+system['name']+' | Game : '+gameName])
+    print ('System: '+system['name']+' | Game : '+gameName)
     thisTag = thisTag.replace('$NAME',escape(gameName))
     description = 'Description for this game is empty!'
     founddesc = False
@@ -731,7 +705,7 @@ def getFileInfo(file,system,companies,emptyGameTag,apikey,uuid,q,sq,config,loggi
             except:
                 description = untdesc
     logging.info ('###### PUTTING DESCRPTION IN QUEUE')
-    q.put(['gamedesc','text',description])
+    #q.put(['gamedesc','text',description])
     logging.info ('###### DESCRPTION IN QUEUE')
     try:
         logging.info ('###### REPLACING DESCRIPTION IN TAG')
@@ -790,7 +764,7 @@ def getFileInfo(file,system,companies,emptyGameTag,apikey,uuid,q,sq,config,loggi
     thisTag = thisTag.replace('$GENRE','')
     ### Repalce all tags with value from response
     logging.info ('###### PUT IN QUEUE')
-    q.put(['scrapPB','valueincrease'])
+    #q.put(['scrapPB','valueincrease'])
     logging.info ('###### DID PUT IN QUEUE')
     logging.info ('###### PUT IN SQUEUE')
     sq.put ((thisTag,int(result['game']['id'])))
@@ -890,7 +864,8 @@ def findMissingGames(config,systemid,havelist,apikey,uuid,systems,queue,doDownlo
     return
 
 def writeXML(sq,writeFile,q):
-    q.put(['gamelabel','text','WRITING GAMELIST'])
+    #q.put(['gamelabel','text','WRITING GAMELIST'])
+    print ('Writing Gamelist')
     thesegames =[]
     ## LOOP OF ALL FILES FINISHED
     donequeue = False
@@ -943,7 +918,7 @@ def fileProcess(currFileIdx,romfiles,currglvalues,system,q,sq):
     logging.info ('####### TRIMMED TO FILE '+logfilename)
     if (not filext in system['extension']) or ('gamelist.xml' in file.lower()):
             logging.info ('###### This file ['+logfilename+'] is not in the list of accepted extensions')
-            q.put(['scrapPB','valueincrease'])
+            #q.put(['scrapPB','valueincrease'])
             sq.put ('')
             return '','',''
     else:
@@ -971,7 +946,8 @@ def getSystems(allsys,selected,all):
 
 def scanSystems(q,systems,apikey,uuid,companies,config,logging,remoteSystems,selectedSystems,scanqueue,origrompath,trans,thn,cli=False):
     hpath = str(Path.home())+'/.retroscraper/'
-    q.put(['gamelabel','text','Scanning Files'])
+    print ('Scanning Files')
+    #q.put(['gamelabel','text','Scanning Files'])
     missfile ='missing.txt'
     if ospath.isfile(missfile):
         remove(missfile)
@@ -1000,7 +976,8 @@ def scanSystems(q,systems,apikey,uuid,companies,config,logging,remoteSystems,sel
         if not testPath(system['path'],logging,thn):
             errormsg = trans['nodirmsg'].replace('$DIR',str(system['path'])).replace('$SYS',str(system['name']))
             logging.error ('###### COULD NOT FIND PATH '+system['path'])
-            q.put(['errorlabel','text',errormsg])
+            #q.put(['errorlabel','text',errormsg])
+            print ('ERROR '+errormsg)
             continue
         outXMLFile = system['path']+'gamelist.xml'
         currglvalues = getGamelistData(outXMLFile)
@@ -1008,24 +985,34 @@ def scanSystems(q,systems,apikey,uuid,companies,config,logging,remoteSystems,sel
         writeFile = open(tmpxmlFile,'w',encoding="utf-8")
         writeFile.write("<?xml version='1.0' encoding='utf-8'?><gameList>")
         romfiles=[]
-        q.put(['gamelabel','text','SCANNING DIRECTORY'])
+        print ('Scanning Directory')
+        #q.put(['gamelabel','text','SCANNING DIRECTORY'])
         try:
             spath = system['path']
             if spath[-1] != '/':
                 spath = spath +'/'
             logging.info ('###### GOING FOR LOCAL PATH')
             try:
-                if config['config']['recursive']:
-                    romfiles = [x for x in sorted(Path(spath).glob('**/*.*')) if (('/images/' not in x.as_posix()) and ('/videos/' not in x.as_posix()) and ('/marquees/' not in x.as_posix()) and ('.cfg' not in x.name) and ('.save' not in x.name) and ('.xml' not in x.name))]
+                if config['config']['fixedmediadir']:
+                    if config['config']['fixedmediadir']=='/':
+                        excpaths=['/NONE/','/NONE/','/NONE/']
+                    else:
+                        tmpex =config['config']['fixedmediadir'][1:]
+                        excpaths=[tmpex,tmpex,tmpex]
                 else:
-                    romfiles = [x for x in sorted(Path(spath).glob('*.*')) if (('/images/' not in x.as_posix()) and ('/videos/' not in x.as_posix()) and ('/marquees/' not in x.as_posix()) and ('.cfg' not in x.name) and ('.save' not in x.name) and ('.xml' not in x.name))]
+                    excpaths = ['/images/','videos/','/marquees/']
+                if config['config']['recursive']:
+                    romfiles = [x for x in sorted(Path(spath).glob('**/*.*')) if ((excpaths[0] not in x.as_posix()) and (excpaths[1] not in x.as_posix()) and (excpaths[2] not in x.as_posix()) and ('.cfg' not in x.name) and ('.save' not in x.name) and ('.xml' not in x.name))]
+                else:
+                    romfiles = [x for x in sorted(Path(spath).glob('*.*')) if ((excpaths[0] not in x.as_posix()) and (excpaths[1] not in x.as_posix()) and (excpaths[2] not in x.as_posix()) and ('.cfg' not in x.name) and ('.save' not in x.name) and ('.xml' not in x.name))]
             except:
-                romfiles = [x for x in sorted(Path(spath).glob('*.*')) if (('/images/' not in x.as_posix()) and ('/videos/' not in x.as_posix()) and ('/marquees/' not in x.as_posix()) and ('.cfg' not in x.name) and ('.save' not in x.name) and ('.xml' not in x.name))]
+                romfiles = [x for x in sorted(Path(spath).glob('*.*')) if ((excpaths[0] not in x.as_posix()) and (excpaths[1] not in x.as_posix()) and (excpaths[2] not in x.as_posix()) and ('.cfg' not in x.name) and ('.save' not in x.name) and ('.xml' not in x.name))]
             logging.info ('###### FOUND '+str(len(romfiles))+' ROMS FOR SYSTEM')
         except Exception as e:
             logging.error ('####### CANNOT OPEN SYSTEM DIR '+system['path']+' ERROR '+str(e))
             errormsg = trans['nodirmsg'].replace('$DIR',str(system['path'])).replace('$SYS',str(system['name']))
-            q.put(['errorlabel','text',errormsg])
+            print ('ERROR '+errormsg)
+            #q.put(['errorlabel','text',errormsg])
             continue
         try:
             logging.info('==========='+str(len(romfiles)))
@@ -1033,7 +1020,8 @@ def scanSystems(q,systems,apikey,uuid,companies,config,logging,remoteSystems,sel
             logging.error(str(e))
         if len(romfiles)==0:
             errormsg = trans['noromsmsg'].replace('$DIR',str(system['path'])).replace('$SYS',str(system['name']))
-            q.put (['errorlabel','text',errormsg])
+            print ('ERROR '+errormsg)
+            #q.put (['errorlabel','text',errormsg])
             continue
         if 75 in system['id']:
             sysid=75
@@ -1047,29 +1035,73 @@ def scanSystems(q,systems,apikey,uuid,companies,config,logging,remoteSystems,sel
             saveConfig(config,q)
         if config['config']['cleanmedia']:
             try:
-                q.put(['gamelabel','text','DELETING IMAGES'])
-                removedir(config,system['path']+'images/',logging,thn)
+                print ('Deleing Images')
+                #q.put(['gamelabel','text','DELETING IMAGES'])
+                if config['config']['fixedmediadir']:
+                    if config['config']['fixedmediadir'][0]=='/':
+                        deldir = config['config']['fixedmediadir']+system['name']
+                    else:
+                        deldir = system['path']+config['config']['fixedmediadir'][1:]
+                else:
+                    deldir = system['path']+'images/'
+                if deldir =='/' or deldir=='.' or deldir=='' :
+                    print ('ABORTING!!! Risk of deleting everything !! Check your mediapath!!')
+                    sysexit(1)
+                else:
+                    removedir(config,deldir,logging,thn)
                 logging.info ('###### DELETED DIRECTORY IMAGES ')
             except Exception as e:
                 logging.info ('###### COULD NOT DELETE DIRECTORY IMAGES '+str(e))
             try:
-                q.put(['gamelabel','text','DELETING VIDEOS'])
-                removedir(config,system['path']+'videos/',logging,thn)
+                print ('Deleting Videos')
+                #q.put(['gamelabel','text','DELETING VIDEOS'])
+                if config['config']['fixedmediadir']:
+                    if config['config']['fixedmediadir'][0]=='/':
+                        deldir = config['config']['fixedmediadir']+system['name']
+                    else:
+                        deldir = system['path']+config['config']['fixedmediadir'][1:]
+                else:
+                    deldir = system['path']+'videos/'
+                if deldir =='/' or deldir=='.' or deldir=='' :
+                    print ('ABORTING!!! Risk of deleting everything !! Check your mediapath!!')
+                    sysexit(1)
+                else:
+                    removedir(config,deldir,logging,thn)
                 logging.info ('###### DELETED DIRECTORY VIDEOS ')
             except Exception as e:
                 logging.info ('###### COULD NOT DELETE DIRECTORY VIDEOS '+str(e))
             try:
-                q.put(['gamelabel','text','DELETING MARQUEES'])
-                removedir(config,system['path']+'marquees/',logging,thn)
+                print ('Deleting Marquees')
+                #q.put(['gamelabel','text','DELETING MARQUEES'])
+                if config['config']['fixedmediadir']:
+                    if config['config']['fixedmediadir'][0]=='/':
+                        deldir = config['config']['fixedmediadir']+system['name']
+                    else:
+                        deldir = system['path']+config['config']['fixedmediadir'][1:]
+                else:
+                    deldir = system['path']+'marquees/'
+                if deldir =='/' or deldir=='.' or deldir=='' :
+                    print ('ABORTING!!! Risk of deleting everything !! Check your mediapath!!')
+                    sysexit(1)
+                else:
+                    removedir(config,deldir,logging,thn)
                 logging.info ('###### DELETED DIRECTORY MARQUEES ')
             except Exception as e:
                 logging.info ('###### COULD NOT DELETE DIRECTORY MARQUEES '+str(e))
-        if not pathExists(config,system['path']+'images/',logging,thn):
-            makedir(config,system['path']+'images/',logging,thn)
-        if not pathExists (config,system['path']+'videos/',logging,thn):
-            makedir(config,system['path']+'videos/',logging,thn)
-        if not pathExists (config,system['path']+'marquees/',logging,thn):
-            makedir(config,system['path']+'marquees/',logging,thn)
+        if config['config']['fixedmediadir'] :
+            if config['config']['fixedmediadir'][0]!='/':
+                meddir = system['path']+config['config']['fixedmediadir'][2:]
+            else:
+                meddir = config['config']['fixedmediadir']+system['name']+'/'
+            if not pathExists(config,meddir,logging,thn):
+                makedir(config,meddir,logging,thn)
+        else:
+            if not pathExists(config,system['path']+'images/',logging,thn):
+                makedir(config,system['path']+'images/',logging,thn)
+            if not pathExists (config,system['path']+'videos/',logging,thn):
+                makedir(config,system['path']+'videos/',logging,thn)
+            if not pathExists (config,system['path']+'marquees/',logging,thn):
+                makedir(config,system['path']+'marquees/',logging,thn)
         bpath = system['path'].replace('/roms/','/overlays/')+'bezels/'
         if not pathExists(config,bpath,logging,thn):
             makedir(config,bpath,logging,thn)
@@ -1078,7 +1110,7 @@ def scanSystems(q,systems,apikey,uuid,companies,config,logging,remoteSystems,sel
         totalfiles = len(romfiles)
         sq = Queue()
         tq = Queue()
-        nthrds = 5
+        nthrds = 1
         thread_list = [None]*nthrds
         havegames=[]
         gamecounter = 0
@@ -1113,27 +1145,28 @@ def scanSystems(q,systems,apikey,uuid,companies,config,logging,remoteSystems,sel
                 logging.info ('###### QUEUE VALUE '+str(value) )
                 thread_list[value].join()
                 thread_list[value]=None
-                ## There is an empty thread, run it!
-                file =''
-                while file =='' and (not alldone):
-                    if (currFileIdx < totalfiles):
-                        file,filext,oldValues = fileProcess(currFileIdx,romfiles,currglvalues,system,q,sq)
-                        currFileIdx = currFileIdx+1
-                    else:
-                        alldone = True
-                if not alldone:
-                    try:
-                        logging.info ('###### CHECKING THREAD '+str(value)+' WHICH HAS VALUE '+str(thread_list[value]))
-                        showfile = file.encode().decode('utf-8')
-                    except:
-                        logging.info('###### EXCEPTION '+str(e)+' IN THREAD '+str(value))
-                        showfile = ''
-                    logging.info ('###### STARTING FILE '+showfile+' IN THREAD '+str(value))
-                    uthrn = (int(system['id'][0])*100000)+(currFileIdx*10)+value
-                    thread = Thread(target=getFileInfo,args=(file,system,companies,emptyGameTag,apikey,uuid,q,sq,config,logging,filext,tq,uthrn,oldValues,value,cli))
-                    thread_list[value]=thread
-                    thread.start()
-                    gamecounter = gamecounter +1
+                if None in thread_list:
+                    ## There is an empty thread, run it!
+                    file =''
+                    while file =='' and (not alldone):
+                        if (currFileIdx < totalfiles):
+                            file,filext,oldValues = fileProcess(currFileIdx,romfiles,currglvalues,system,q,sq)
+                            currFileIdx = currFileIdx+1
+                        else:
+                            alldone = True
+                    if not alldone:
+                        try:
+                            logging.info ('###### CHECKING THREAD '+str(value)+' WHICH HAS VALUE '+str(thread_list[value]))
+                            showfile = file.encode().decode('utf-8')
+                        except:
+                            logging.info('###### EXCEPTION '+str(e)+' IN THREAD '+str(value))
+                            showfile = ''
+                        logging.info ('###### STARTING FILE '+showfile+' IN THREAD '+str(value))
+                        uthrn = (int(system['id'][0])*100000)+(currFileIdx*10)+value
+                        thread = Thread(target=getFileInfo,args=(file,system,companies,emptyGameTag,apikey,uuid,q,sq,config,logging,filext,tq,uthrn,oldValues,value,cli))
+                        thread_list[value]=thread
+                        thread.start()
+                        gamecounter = gamecounter +1
                 if (not any(thread_list)) and alldone:
                     finishedthreads=True
             except:
@@ -1191,15 +1224,16 @@ def scanSystems(q,systems,apikey,uuid,companies,config,logging,remoteSystems,sel
         rmtree(str(Path.home())+'/.retroscraper/filetmp/')
         logging.info ('###### REMOVED TEMP IMAGES DIR')
     logging.info ('###### INFORMING SCAN DONE IN THREAD '+str(thn))
-    q.put(['scandone','scandone',False])
+    print ('San Done!')
+    #q.put(['scandone','scandone',False])
     logging.info ('###### INFORMED SCAN DONE IN THREAD '+str(thn))
-    q.put(['gamelabel','text',''])
-    q.put(['gamedesc','text',''])
-    q.put(['gameimage','source',''])
-    q.put(['sysImage','source',''])
-    q.put(['sysImageGame','source',''])
-    q.put(['sysLabel','text',trans['alldone']])
-    q.put(['scandone','scandone',True])
+    #q.put(['gamelabel','text',''])
+    #q.put(['gamedesc','text',''])
+    #q.put(['gameimage','source',''])
+    #q.put(['sysImage','source',''])
+    #q.put(['sysImageGame','source',''])
+    #q.put(['sysLabel','text',trans['alldone']])
+    #q.put(['scandone','scandone',True])
     return
 
 def getAbsRomPath(testpath,thn):
