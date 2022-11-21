@@ -1163,8 +1163,11 @@ def scanSystems(q,systems,apikey,uuid,companies,config,logging,remoteSystems,sel
                 value = tq.get_nowait()
                 rq = 0
                 logging.info ('###### QUEUE VALUE '+str(value) )
-                thread_list[value].join()
-                thread_list[value]=None
+                try:
+                    thread_list[value].join()
+                    thread_list[value]=None
+                except:
+                    pass
                 if None in thread_list:
                     ## There is an empty thread, run it!
                     file =''
