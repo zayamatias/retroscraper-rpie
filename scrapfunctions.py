@@ -1110,7 +1110,7 @@ def scanSystems(q,systems,apikey,uuid,companies,config,logging,remoteSystems,sel
         totalfiles = len(romfiles)
         sq = Queue()
         tq = Queue()
-        nthrds = 1
+        nthrds = 5
         thread_list = [None]*nthrds
         havegames=[]
         gamecounter = 0
