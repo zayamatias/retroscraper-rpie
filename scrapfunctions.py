@@ -701,14 +701,23 @@ def getFileInfo(file,system,companies,emptyGameTag,apikey,uuid,q,sq,config,loggi
             try:
                 if config['config']['usegoogle']:
                     translator=Translator()
+                    translator.raise_Exception = True
                     langtot = config['config']['language']
                     translation = translator.translate(untdesc,dest=langtot)
                     description = translation.text
                     logging.info ('###### I\'VE TRANSLATED THE TEXT ')
                 else:
                     description = untdesc
-            except:
-                description = untdesc
+            except Exception as e:
+                try:
+                    translator=Translator()
+                    translator.raise_Exception = True
+                    langtot = config['config']['language']
+                    translation = translator.translate(untdesc,dest=langtot)
+                    description = translation.text
+                except Exception as e:
+                    logging.error ('###### COULD NOT TRANSLATE '+str(e))
+                    description = untdesc
     logging.info ('###### PUTTING DESCRPTION IN QUEUE')
     #q.put(['gamedesc','text',description])
     logging.info ('###### DESCRPTION IN QUEUE')
@@ -975,6 +984,7 @@ def scanSystems(q,systems,apikey,uuid,companies,config,logging,remoteSystems,sel
     logging.info ('###### THESE ARE THE SELECTED SYSTEMS:'+str(selectedSystems))
     systemList = getSystems(systems,selectedSystems,doallsystems)
     for system in systemList:
+        print ('Doing System '+str(system['name']))
         logging.info ('###### START SCAN SYSTEM '+str(system))
         if config['config']['MountPath']:
             system['path']=system['path'].replace(origrompath,config['config']['MountPath'])
@@ -1002,7 +1012,7 @@ def scanSystems(q,systems,apikey,uuid,companies,config,logging,remoteSystems,sel
                     if config['config']['fixedmediadir']=='/':
                         excpaths=['/NONE/','/NONE/','/NONE/']
                     else:
-                        tmpex =config['config']['fixedmediadir'][1:]
+                        tmpex =config['config']['fixedmediadir'][1:]+system['name']
                         excpaths=[tmpex,tmpex,tmpex]
                 else:
                     excpaths = ['/images/','videos/','/marquees/']
@@ -1028,8 +1038,10 @@ def scanSystems(q,systems,apikey,uuid,companies,config,logging,remoteSystems,sel
             print ('ERROR '+errormsg)
             #q.put (['errorlabel','text',errormsg])
             continue
+        print ('Found '+str(len(romfiles))+ ' roms for the system')
         if 75 in system['id']:
             sysid=75
+            print ('This is an arcade system')
         else:
             sysid=system['id'][0]
         #### SYSTEM IMAGE
@@ -1037,7 +1049,6 @@ def scanSystems(q,systems,apikey,uuid,companies,config,logging,remoteSystems,sel
             cm = config['config']['cleanmedia']
         except:
             config['config']['cleanmedia'] = False
-            saveConfig(config,q)
         if config['config']['cleanmedia']:
             try:
                 print ('Deleting Images')
@@ -1115,6 +1126,7 @@ def scanSystems(q,systems,apikey,uuid,companies,config,logging,remoteSystems,sel
         totalfiles = len(romfiles)
         sq = Queue()
         tq = Queue()
+        ## NUMBER OF TOTAL THREADS / CAREFULL,  MORE THAN 5 MAY GET YOU KICKED OUT OF THE BACKEND ;-)
         nthrds = 5
         thread_list = [None]*nthrds
         havegames=[]
@@ -1144,9 +1156,12 @@ def scanSystems(q,systems,apikey,uuid,companies,config,logging,remoteSystems,sel
                 thread_list[thrn]=thread
                 thread.start()
                 gamecounter = gamecounter +1
+        rq = 0
         while not finishedthreads:
+            rq = rq + 1
             try:
                 value = tq.get_nowait()
+                rq = 0
                 logging.info ('###### QUEUE VALUE '+str(value) )
                 thread_list[value].join()
                 thread_list[value]=None
@@ -1175,6 +1190,11 @@ def scanSystems(q,systems,apikey,uuid,companies,config,logging,remoteSystems,sel
                 if (not any(thread_list)) and alldone:
                     finishedthreads=True
             except:
+                sleep (0.01)
+                if rq == 1000:
+                    rq =0
+                    if (not any(thread_list)):
+                        tq.put(0)
                 pass
             if (gamecounter == 100) or finishedthreads:
                 havegames = havegames + writeXML(sq,writeFile,q)
