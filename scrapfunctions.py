@@ -20,7 +20,7 @@ import os
 
 def removedir(config,path,logging,thn):
     if path=='/' or path=='.' or path =='':
-        print ('ABORTING, RISK OF BREAKING THE SYSTEM!')
+        print ('ABORTING, RISK OF BREAKING THE SYSTEM!',flush=True)
         sysexit(1)
     rmtree(path)
 
@@ -108,7 +108,7 @@ def getInfoFromAPI(system,thisfilename,sha1,md5,crc,apikey,uuid,logging,thn):
                     try:
                         partnames = sub('[^A-Za-z0-9]+',' ',arcadeName).lower().split()
                     except Exception as e:
-                        print ('###### ERROR WHEN GETTING ARCADE NAME '+str(arcadeName)+' ->'+str(e)+' in file '+str(showfilename)+' THREAD['+str(thn)+']')
+                        print ('###### ERROR WHEN GETTING ARCADE NAME '+str(arcadeName)+' ->'+str(e)+' in file '+str(showfilename)+' THREAD['+str(thn)+']',flush=True)
                         sysexit()
 
                 else:
@@ -225,7 +225,7 @@ def saveConfig(config,q):
         f.write(jsondumps(config['config']))
         f.close()
     except Exception as e:
-        print('CONFIG ERROR! - I CANNOT CREATE A CONFIG FILE '+str(e))
+        print('CONFIG ERROR! - I CANNOT CREATE A CONFIG FILE '+str(e),flush=True)
         return config
     return
 
@@ -326,7 +326,7 @@ def loadSystems(config,apikey,uuid,remoteSystems,q,trans,logging):
         tst.close()
     except:
         logging.error ('###### CANNOT READ SYSTEMS FILE!')
-        print('Cannot read systems file!')
+        print('Cannot read systems file!',flush=True)
         return 'XMLERROR'
     with open(config['config']['SystemsFile'], 'r') as xml_file:
         logging.info ('###### OPENED FILE')
@@ -363,7 +363,7 @@ def loadSystems(config,apikey,uuid,remoteSystems,q,trans,logging):
                         logging.info ('###### GET SYSTEM INFO')
                         mySystem[xmlSystem.tag.lower()]=xmlSystem.text
                     except Exception as e:
-                        print('CANNOT GET TAG NAME '+str(e))
+                        print('CANNOT GET TAG NAME '+str(e),flush=True)
                         pass
                     logging.info ('###### GOT SYSTEM TAG ['+xmlSystem.tag.lower()+']')
                     if str(xmlSystem.tag.upper())=='NAME':
@@ -393,7 +393,7 @@ def loadSystems(config,apikey,uuid,remoteSystems,q,trans,logging):
                     systems.append(mySystem)
                     q.put(['errorlabel','text',trans['unksystem']+' '+str(mySystem['name'])])
     except Exception as e:
-        print ('CANNOT PARSE XML '+str(e))
+        print ('CANNOT PARSE XML '+str(e),flush=True)
         systems=[]
     return systems
 
@@ -672,7 +672,7 @@ def getFileInfo(file,system,companies,emptyGameTag,apikey,uuid,q,sq,config,loggi
         logging.info ('###### NO BRACKET SELECTION CONFIGURED')
     ## TRY PRINT I/OF QUEUE
     #q.put(['gamelabel','text',' System : '+system['name']+' | Game : '+gameName])
-    print ('System: '+system['name']+' | Game : '+gameName)
+    print ('System: '+system['name']+' | Game : '+gameName,flush=True)
     thisTag = thisTag.replace('$NAME',escape(gameName))
     description = 'Description for this game is empty!'
     founddesc = False
@@ -865,7 +865,7 @@ def findMissingGames(config,systemid,havelist,apikey,uuid,systems,queue,doDownlo
 
 def writeXML(sq,writeFile,q):
     #q.put(['gamelabel','text','WRITING GAMELIST'])
-    print ('Writing Gamelist')
+    print ('Writing Gamelist',flush=True)
     thesegames =[]
     ## LOOP OF ALL FILES FINISHED
     donequeue = False
@@ -940,13 +940,13 @@ def getSystems(allsys,selected,all):
             if not all:
                 selected.remove(system['name'])
     if selected:
-        print ('COULD NOT LOCATE SYSTEMS '+str(selected))
+        print ('COULD NOT LOCATE SYSTEMS '+str(selected),flush=True)
         logging.error ('COULD NOT LOCATE SYSTEMS '+str(selected))
     return retsys
 
 def scanSystems(q,systems,apikey,uuid,companies,config,logging,remoteSystems,selectedSystems,scanqueue,origrompath,trans,thn,cli=False):
     hpath = str(Path.home())+'/.retroscraper/'
-    print ('Scanning Files')
+    print ('Scanning Files',flush=True)
     #q.put(['gamelabel','text','Scanning Files'])
     missfile ='missing.txt'
     if ospath.isfile(missfile):
@@ -954,7 +954,7 @@ def scanSystems(q,systems,apikey,uuid,companies,config,logging,remoteSystems,sel
     logging.info ('###### INTO SYSTEM SCAN')
     if not systems:
         logging.info ('###### NO SYSTEMS TO SCAN')
-        print ('COULD NOT FIND ANY SYSTEMS - EXITING')
+        print ('COULD NOT FIND ANY SYSTEMS - EXITING',flush=True)
         return
     getmeout = False
     emptyGameTag = "\n\t<game>\n\t\t<rating>$RATING</rating>\n\t\t<name>$NAME</name>\n\t\t<marquee>$MARQUEE</marquee>\n\t\t<image>$IMAGE</image>\n\t\t<publisher>$PUBLISHER</publisher>\n\t\t<releasedate>$RELEASEDATE</releasedate>\n\t\t<players>$PLAYERS</players>\n\t\t<video>$VIDEO</video>\n\t\t<genre>$GENRE</genre>\n\t\t<path>$PATH</path>\n\t\t<developer>$DEVELOPER</developer>\n\t\t<thumbnail/>\n\t\t<desc>$DESCRIPTION</desc>$FAVO\n\t\t<playcount>$PLAYCOUNT</playcount>\n\t\t<lastplayed>$LASTPLAY</lastplayed>\n\t</game>"
@@ -977,7 +977,7 @@ def scanSystems(q,systems,apikey,uuid,companies,config,logging,remoteSystems,sel
             errormsg = trans['nodirmsg'].replace('$DIR',str(system['path'])).replace('$SYS',str(system['name']))
             logging.error ('###### COULD NOT FIND PATH '+system['path'])
             #q.put(['errorlabel','text',errormsg])
-            print ('ERROR '+errormsg)
+            print ('ERROR '+errormsg,flush=True)
             continue
         outXMLFile = system['path']+'gamelist.xml'
         currglvalues = getGamelistData(outXMLFile)
@@ -985,7 +985,7 @@ def scanSystems(q,systems,apikey,uuid,companies,config,logging,remoteSystems,sel
         writeFile = open(tmpxmlFile,'w',encoding="utf-8")
         writeFile.write("<?xml version='1.0' encoding='utf-8'?><gameList>")
         romfiles=[]
-        print ('Scanning Directory')
+        print ('Scanning Directory',flush=True)
         #q.put(['gamelabel','text','SCANNING DIRECTORY'])
         try:
             spath = system['path']
@@ -1224,7 +1224,7 @@ def scanSystems(q,systems,apikey,uuid,companies,config,logging,remoteSystems,sel
         rmtree(str(Path.home())+'/.retroscraper/filetmp/')
         logging.info ('###### REMOVED TEMP IMAGES DIR')
     logging.info ('###### INFORMING SCAN DONE IN THREAD '+str(thn))
-    print ('San Done!')
+    print ('Scan Done!',flush=True)
     #q.put(['scandone','scandone',False])
     logging.info ('###### INFORMED SCAN DONE IN THREAD '+str(thn))
     #q.put(['gamelabel','text',''])
