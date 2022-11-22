@@ -91,8 +91,12 @@ function scrape_retroscraper() {
         params+=" --nobackup"
     fi
 
-    if [[ "relativepaths" -eq 1 ]]; then
-        params+= "--relativepaths"
+    if [[ "$relativepaths" -eq 1 ]]; then
+        params+=" --relativepaths"
+    fi
+
+    if [[ ! -z "$mediadir" ]]; then
+        params+=" --mediadir $mediadir"
     fi
 
     if [[ "$keepdata" -eq 1 ]]; then
@@ -138,6 +142,8 @@ function scrape_retroscraper() {
     if [[ "$cleanmedia" -eq 1 ]]; then
         params+=" --cleanmedia"
     fi
+
+    echo "$params"
 
     # trap ctrl+c and return if pressed (rather than exiting retropie-setup etc)
     trap 'trap 2; return 1' INT
@@ -250,6 +256,12 @@ function gui_retroscraper() {
             options+=(4 "Use relative paths in gamelists")
         fi
 
+        if [[ -z "$mediadir" ]]; then
+            options+=(M "Use default media directories (images,videos,marquees)")
+        else
+            options+=(M "Use custom single folder for images $mediadir")
+        fi
+
         if [[ "$keepdata" -eq 0 ]]; then
             options+=(5 "Discard last played/favorite data")
         else
@@ -332,13 +344,18 @@ function gui_retroscraper() {
                     iniSet "googletrans" "$googletrans"
                     ;;
  
-		3)
+		        3)
                     nobackup="$((nobackup ^ 1))"
                     iniSet "nobackup" "$nobackup"
                     ;;
                 4)
                     relativepaths="$((relativepaths ^ 1))"
                     iniSet "relativepaths" "$relativepaths"
+                    ;;
+                M)
+                    local cmd=(dialog --backtitle "$__backtitle" --inputbox "Enter custom media directory" 22 76 $mediadir)
+                    mediadir=$("${cmd[@]}" 2>&1 >/dev/tty)
+                    iniSet "mediadir" "$mediadir"
                     ;;
                 5)
                     keepdata="$((keepdata ^1))"
