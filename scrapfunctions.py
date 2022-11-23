@@ -984,6 +984,9 @@ def scanSystems(q,systems,apikey,uuid,companies,config,logging,remoteSystems,sel
     logging.info ('###### THESE ARE THE SELECTED SYSTEMS:'+str(selectedSystems))
     systemList = getSystems(systems,selectedSystems,doallsystems)
     for system in systemList:
+        if system['name'].lower()=='retropie':
+            print ('Skipping System '+str(system['name']))
+            continue
         print ('Doing System '+str(system['name']))
         logging.info ('###### START SCAN SYSTEM '+str(system))
         if config['config']['MountPath']:
