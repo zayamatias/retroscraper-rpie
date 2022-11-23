@@ -3,6 +3,8 @@ Trimmed down version of retroscrpaer, designed for a lighter experience and Retr
 
 ## Install
 
+### Standalone
+
 Log in via ssh to your RetroPie machine
 
 Cange to the home directory
@@ -32,6 +34,18 @@ Install dependencies
 ```
 python3 -m pip install -r dependencies.txt
 ```
+You're done
+
+### To be used with retropie_setup
+
+Download retroscraper.sh and copy it to your RetroPie supplemetary directory, usually:
+
+/home/pi/RetroPie/scriptmodules/supplementary
+
+Run retropie setup and go to manage optiona packages. By the bottom of the list you should see the retroscraper function.
+
+Install it and once done go to configure/options to run it.
+
 You're done
 
 ## Running 
