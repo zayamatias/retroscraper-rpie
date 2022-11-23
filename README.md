@@ -75,6 +75,18 @@ Scan subfloders in your system folder
 
 Store relative paths in the gamelist
 
+#### --mediadir DIR
+
+This commabd gives you the option to chose the destination of the media files, you have three options:
+
+- Leave it blank, and by default it will save the edia under 3 directories (images, marquees and videos) within the system directory, for example ~/RetroPie/roms/amiga/images, ~/RetroPie/roms/amiga/videos,~/RetroPie/roms/amiga/marquees
+
+- Put an absolute path (DIR starting by /) and it will save everything under that absolute path, but appending the system name to avoid clashing of names, for example, if DIR is '/home/pi/medias' it will create '/home/pi/medias/amiga' and save media there.
+
+- Put a relative path (DIR not starting bye /), and it will create this path under the system roms directory, for example, if DIR is 'emulationstation/medias' it will save under ~/RetroPie/roms/amiga/images/emulationstation/medias
+
+Of course, amiga has been chosen as an example here, the system name will be taken from your configuration files.
+
 #### --preferbox
 
 Download boxes instead of screenshots for games
