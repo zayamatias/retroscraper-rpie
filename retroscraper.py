@@ -77,6 +77,7 @@ if __name__ == '__main__':
     parser.add_argument('--debug', help='Use for debugging purposes',action='store_true')
     parser.add_argument('--listsystems', help='Return a list of available systems',action='store_true')
     parser.add_argument('--listlangs', help='List available languages',action='store_true')
+    parser.add_argument('--appver', help='Display retroscraper version and stop',action='store_true')
     try:
         args = parser.parse_args()
         argsvals = vars(args)
@@ -98,6 +99,14 @@ if __name__ == '__main__':
 
     cli = True
     silent = True
+
+    try:
+        showver = argsvals['appver']
+        if showver:
+            print (str(version))
+            sys.exit()
+    except Exception as e:
+        pass
 
     try:
         debug = argsvals['debug']
