@@ -78,6 +78,7 @@ if __name__ == '__main__':
     parser.add_argument('--listsystems', help='Return a list of available systems',action='store_true')
     parser.add_argument('--listlangs', help='List available languages',action='store_true')
     parser.add_argument('--appver', help='Display retroscraper version and stop',action='store_true')
+    parser.add_argument('--sort', help='Sort your roms by system, put all your roms in one directory and output structure to second directory',nargs=2,metavar=('ORIG','DEST'))
     try:
         args = parser.parse_args()
         argsvals = vars(args)
@@ -100,6 +101,16 @@ if __name__ == '__main__':
     cli = True
     silent = True
 
+    try:
+        config['config']['sort']=dict()
+        config['config']['sort']['indir'] = argsvals['sort'][0]
+        config['config']['sort']['outdir'] = argsvals['sort'][1]
+        if config['config']['sort']['indir'][-1]!='/':
+            config['config']['sort']['indir'] = config['config']['sort']['indir']+'/'
+        if config['config']['sort']['outdir'][-1]!='/':
+            config['config']['sort']['outdir']=config['config']['sort']['outdir']+'/'
+    except:
+        config['config']['sort']['indir'] = ''
     try:
         showver = argsvals['appver']
         if showver:
@@ -262,7 +273,11 @@ if __name__ == '__main__':
     print ('Starting scraping', flush=True)
     logging.info ('###### STARTING SCRAPPING ')
     logging.info ('STARTING THREADS')
-    thread = Thread(target= scrapfunctions.scanSystems,args=(q,systems,apikey,uuid,companies,config,logging,remoteSystems,systemstoscan,scanqueue,rompath,trans,'MAIN',True))
+    if config['config']['sort']['indir']:
+        print ("Going to sort your roms from "+config['config']['sort']['indir']+" to "+config['config']['sort']['outdir'])
+        thread = Thread(target= scrapfunctions.sortRoms,args=(q,remoteSystems,apikey,uuid,companies,config,logging,'MAIN'))
+    else:
+        thread = Thread(target= scrapfunctions.scanSystems,args=(q,systems,apikey,uuid,companies,config,logging,remoteSystems,systemstoscan,scanqueue,rompath,trans,'MAIN',True))
     thread.start()
     system =''
     game=''

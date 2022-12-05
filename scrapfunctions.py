@@ -958,6 +958,40 @@ def getSystems(allsys,selected,all):
         logging.error ('COULD NOT LOCATE SYSTEMS '+str(selected))
     return retsys
 
+def sortRoms(q,remotesystems,apikey,uuid,companies,config,logging,thn):
+    ### Getting all files
+    systems=dict()
+    for sys in remotesystems['systems']:
+        systems[sys['id']]=sys['names'][0]['name_eu'].replace(' ','_').lower()
+    systems[168]='notgame'
+    systems[0]='unknown'
+    romfiles = [x for x in sorted(Path(config['config']['sort']['indir']).glob('**/*.*')) ]
+    for file in romfiles:
+        if ('.cfg' in str(file)) or ('.xml' in str(file)):
+            continue
+        print ('Processing '+str(file))
+        logging.info ('####### GETTING CHECKSUMS FOR '+str(file)+'THREAD['+str(thn)+']')
+        mysha1,mymd5,mycrc = getChecksums(file,config,logging,thn)
+        logging.info ('####### GOT CHECKSUMS FOR '+str(file)+' THREAD['+str(thn)+']')
+        ## PROCESS FILE AND START DOING MAGIC
+        logging.info ('####### GETTING INFO FOR '+str(file)+' THREAD['+str(thn)+']')
+        result = getInfoFromAPI ([0],str(file),mysha1,mymd5,mycrc,apikey,uuid,logging,thn)
+        sysid = result['game']['system']['id']
+        try:
+            sysname = systems[int(sysid)]
+        except:
+            print ('There\'s an error in the backend, system '+str(sysid)+' is not recognized.')
+            sys.exit()
+        origfile = str(file)
+        destdir  = config['config']['sort']['outdir']+sysname
+        if not os.path.exists(destdir):
+            os.makedirs(destdir)
+        destfile = destdir+origfile[origfile.rindex('/'):]
+        print ('Copying '+origfile+' to '+destfile)
+        subprocess.call (['cp',origfile,destfile])
+    return
+
+
 def scanSystems(q,systems,apikey,uuid,companies,config,logging,remoteSystems,selectedSystems,scanqueue,origrompath,trans,thn,cli=False):
     hpath = str(Path.home())+'/.retroscraper/'
     print ('Scanning Files',flush=True)
