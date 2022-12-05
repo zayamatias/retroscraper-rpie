@@ -967,7 +967,7 @@ def sortRoms(q,remotesystems,apikey,uuid,companies,config,logging,thn):
     systems[0]='unknown'
     romfiles = [x for x in sorted(Path(config['config']['sort']['indir']).glob('**/*.*')) ]
     for file in romfiles:
-        if ('.cfg' in str(file)) or ('.xml' in str(file)):
+        if ('.cfg' in str(file)) or ('.xml' in str(file)) or ('.png' in str(file))or ('.mp4' in str(file)):
             continue
         print ('Processing '+str(file))
         logging.info ('####### GETTING CHECKSUMS FOR '+str(file)+'THREAD['+str(thn)+']')
