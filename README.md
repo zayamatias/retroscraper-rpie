@@ -36,6 +36,13 @@ python3 -m pip install -r dependencies.txt
 ```
 You're done
 
+If you get a message saying pillow cannot be installed, run 
+```
+sudo apt install python3-dev
+```
+
+Thanks to learntoswim for the heads up.
+
 ### To be used with retropie_setup
 
 Download retroscraper.sh and copy it to your RetroPie supplemetary directory, usually:
