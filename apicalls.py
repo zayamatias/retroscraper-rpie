@@ -15,6 +15,9 @@ from requests.models import Response as reqResponse
 from time import sleep
 
 
+session = requests.Session()
+
+
 def backendURL():
     #return "http://192.168.8.160"
     return "http://77.68.23.83"
@@ -22,7 +25,7 @@ def backendURL():
 def download_file(url,dest,queue):
  with open(dest, "wb") as f:
     print("Downloading %s" % dest)
-    response = requests.get(url, stream=True)
+    response = session.get(url, stream=True)
     if response.status_code==200:
         total_length = response.headers.get('content-length')
         if total_length is None: # no content length header
@@ -50,7 +53,7 @@ def simpleCall(url):
         retries = 10
         while not success and retries > 1:
             try:
-                req = requests.get(url,headers=headers)
+                req = session.get(url,headers=headers)
                 success = True
             except requestsexceptions.Timeout:
                 #logging.error ('###### REQUEST TIMED OUT')
@@ -102,7 +105,7 @@ def getImageAPI(config,url,destfile,apikey,uuid,thn,toi,cli,logging,force=False)
     while retries > 0:
         try:
             logging.info ('###### GOING TO DOWNLOAD IMAGE '+destfile+' WITH URL '+finalURL+'IN THREAD ['+str(thn)+']')
-            r = requests.get(finalURL, stream=True, headers=myHeader)
+            r = session.get(finalURL, stream=True, headers=myHeader)
             if r.status_code == 200:
                 logging.info ('###### PROPERLY DOWNLADED IMAGE '+destfile+' WITH URL '+finalURL+'IN THREAD ['+str(thn)+']')
                 with open(destfile, 'wb') as f:
@@ -121,7 +124,7 @@ def getImageAPI(config,url,destfile,apikey,uuid,thn,toi,cli,logging,force=False)
                     return destfile
             else:
                 if ('.png' in url) and r.status_code==404:
-                    r = requests.get(backendURL()+'/api/medias/0/noimage.png', stream=True, headers=myHeader)
+                    r = session.get(backendURL()+'/api/medias/0/noimage.png', stream=True, headers=myHeader)
                     if r.status_code == 200:
                         with open(destfile, 'wb') as f:
                             r.raw.decode_content = True
@@ -159,7 +162,7 @@ def getCallHandler(url,apikey,uuid,thn):
     logging.info ('###### USING HEADER '+str(header)+' THREAD['+str(thn)+']')
     while retries > 0:
         try:
-            result = requests.get(url, headers=header)
+            result = session.get(url, headers=header)
             logging.info('###### RESULT CODE FROM API CALL '+str(result.status_code)+' THREAD['+str(thn)+']')
             if result.status_code==200 or result.status_code == 404:
                 try:
@@ -207,7 +210,7 @@ def postCallHandler(url,apikey,uuid,data,logging,thn):
     while retries > 0:
         try:
             data = data.encode(encoding='utf-8')
-            result = requests.post(url, headers=header,data=data)
+            result = session.post(url, headers=header,data=data)
             logging.info ('###### SUBMITTED TO BACKEND AND GOT STATUS CODE '+str(result.status_code)+' THREAD['+str(thn)+']')
             if result.status_code==200 or result.status_code == 404:
                 return result
@@ -264,9 +267,9 @@ def getAllGames(sysid,apikey,uuid,thn):
     else:
         return result.json()['Games']
 
-def getGame(gameid,apikey,uuid):
+def getGame(gameid,apikey,uuid,thn):
     url = backendURL()+'/api/id/'+str(gameid)
-    result = getCallHandler(url, apikey,uuid)
+    result = getCallHandler(url, apikey,uuid,thn)
     if result.status_code != 200:
         return []
     else:
