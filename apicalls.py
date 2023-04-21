@@ -107,7 +107,7 @@ def getImageAPI(config,url,destfile,apikey,uuid,thn,toi,cli,logging,force=False)
     myHeader = {"apikey":apikey,"uuid":uuid,"plat":platform.platform(),"User-Agent": "Retroscraper"}
     retries = 10
     finalURL = backendURL()+url
-    if 'video' and '(wor)' in finalURL:
+    if ('video' in finalURL) and ('(wor)' in finalURL):
         finalURL=finalURL.replace('(wor)','')
     while retries > 0:
         try:
