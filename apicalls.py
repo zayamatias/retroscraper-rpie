@@ -94,14 +94,21 @@ def getSystemsExtensions(sysname):
 
 def getImageAPI(config,url,destfile,apikey,uuid,thn,toi,cli,logging,force=False):
     try:
-        if (not force) and (not os.path.isfile(destfile)) and Path(destfile).stat().st_size<2:
+        fsize = Path(destfile).stat().st_size
+    except:
+        fsize = 0
+    try:
+        if (not force) and (not os.path.isfile(destfile)) and fsize>2:
             logging.info ('####### NOT DOWNLOADING FILE, IT ALREADY EXISTS THREAD['+str(thn)+']')
             return
-    except:
+    except Exception as e:
+        logging.error ('###### PROBLEM DOWNLADING '+url+' '+str(e))
         pass
     myHeader = {"apikey":apikey,"uuid":uuid,"plat":platform.platform(),"User-Agent": "Retroscraper"}
     retries = 10
     finalURL = backendURL()+url
+    if 'video' and '(wor)' in finalURL:
+        finalURL=finalURL.replace('(wor)','')
     while retries > 0:
         try:
             logging.info ('###### GOING TO DOWNLOAD IMAGE '+destfile+' WITH URL '+finalURL+'IN THREAD ['+str(thn)+']')
