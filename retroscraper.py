@@ -252,7 +252,7 @@ if __name__ == '__main__':
         if os.path.isfile('/etc/emulationstation/es_systems.cfg'):
             config['config']['SystemsFile'] = '/etc/emulationstation/es_systems.cfg'
         if not os.path.isfile(config['config']['SystemsFile']):
-            print ('There seems to be an error in your retroscraper config file, I cannot find the systems configuration file (usually something like es_systems.cfg)')
+            print ('I cannot find your systems file, please use the "--systemsfile" flag to point to the es_systems.cfg file in your system')
             logging.error('###### SYSTEMS FILE CANNOT BE FOUND '+str(config['config']['SystemsFile']))
             sysexit()
     logging.info ('###### LOADING SYSTEMS FROM BACKEND')
