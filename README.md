@@ -1,6 +1,8 @@
 # retroscraper-rpie
 Trimmed down version of retroscrpaer, designed for a lighter experience and RetroPie Integration
 
+(windows executable also available)
+
 ## Install
 
 ### Standalone
