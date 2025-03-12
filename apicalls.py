@@ -39,8 +39,10 @@ def download_file(url,dest,queue):
                 done = int(50 * dl / total_length)
                 sys.stdout.write("\r[%s%s]" % ('=' * done, ' ' * (50-done)) )    
                 sys.stdout.flush()
+            f.close()
             return True
     else:
+        f.close()
         return False
 
 def simpleCall(url):
@@ -124,7 +126,9 @@ def getImageAPI(config,url,destfile,apikey,uuid,thn,toi,cli,logging,force=False)
                     else:
                         img = Image.open(BytesIO(r.content))
                         logging.info ('###### CREATED IMAGE IN MEMORY IN THREAD ['+str(thn)+']')
+                        f.close()
                         return img
+                    f.close()
                 if int(Path(destfile).stat().st_size) < 2:
                     finalUrl = backendURL()+'/api/medias/0/noimage.png'
                 else:
@@ -137,9 +141,11 @@ def getImageAPI(config,url,destfile,apikey,uuid,thn,toi,cli,logging,force=False)
                             r.raw.decode_content = True
                             if destfile:
                                 shutil.copyfileobj(r.raw, f)
+                                f.close()
                                 return destfile
                             else:
                                 img = Image.open(BytesIO(r.content))
+                                f.close()
                                 return img
                     else:
                         return False
