@@ -79,6 +79,7 @@ if __name__ == '__main__':
     parser.add_argument('--listlangs', help='List available languages',action='store_true')
     parser.add_argument('--appver', help='Display retroscraper version and stop',action='store_true')
     parser.add_argument('--sort', help='Sort your roms by system, put all your roms in one directory and output structure to second directory',nargs=2,metavar=('ORIG','DEST'))
+    parser.add_argument('--olderthan', help='Skip gamelists that are not older than X days',nargs=1)
     try:
         args = parser.parse_args()
         argsvals = vars(args)
@@ -186,6 +187,10 @@ if __name__ == '__main__':
         config['config']['cleanmedia']= argsvals['cleanmedia']
     except:
         config['config']['cleanmedia']= False
+    try:
+        config['config']['olderthan']= int(argsvals['olderthan'][0])*24*60*60
+    except:
+        config['config']['olderthan']= 0
 
     try:
         fixedmediadir = argsvals['mediadir'][0]

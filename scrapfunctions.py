@@ -19,6 +19,7 @@ from pathlib import Path as Path
 import os
 import subprocess
 from sys import platform
+import time
 
 def removedir(config,path,logging,thn):
     if path=='/' or path=='.' or path =='':
@@ -65,17 +66,17 @@ def getArcadeName(name,thn):
     #print ('###### GETTING ARCADE NAME IN URL '+callURL)
     response = apicalls.simpleCall(callURL)
     if response!= '':
-        gamename = findall("<title>(.*?)<\/title>", response)[0].replace('Game Details:  ','').replace(' - mamedb.com','')
+        gamename = findall(r"<title>(.*?)<\/title>", response)[0].replace('Game Details:  ','').replace(' - mamedb.com','')
         logging.info ('###### FOUND GAME IN MAMEDB '+gamename+' THREAD['+str(thn)+']')
         return gamename
     response = apicalls.simpleCall(callURL2)
     if response !='':
-        gamename = findall("\<title\>Game Details:  (\w*).*\<\/title\>", response[0])
+        gamename = findall(r"\<title\>Game Details:  (\w*).*\<\/title\>", response[0])
         logging.info ('###### FOUND GAME IN MAMEDB BLU FERRET '+gamename+' THREAD['+str(thn)+']')
         return gamename
     response = apicalls.simpleCall(callURL3)
     if response != '':
-        gamename = findall("<title>(.*?)<\/title>", response)[0].replace(' - MAME machine','').replace(' - MAME software','')
+        gamename = findall(r"<title>(.*?)<\/title>", response)[0].replace(' - MAME machine','').replace(' - MAME software','')
         gamename = gamename.replace(' - MAME machin...','')
     if gamename.upper()=='ARCADE DATABASE':
         #print('###### COULD NOT GET NAME FROM ARCADE ITALIA')
@@ -111,17 +112,17 @@ def getInfoFromAPI(system,thisfilename,sha1,md5,crc,apikey,uuid,logging,thn):
                     if arcadeName == '' or not arcadeName:
                         arcadeName = fname
                     try:
-                        partnames = sub('[^A-Za-z0-9]+',' ',arcadeName).lower().split()
+                        partnames = sub(r'[^A-Za-z0-9]+',' ',arcadeName).lower().split()
                     except Exception as e:
                         print ('###### ERROR WHEN GETTING ARCADE NAME '+str(arcadeName)+' ->'+str(e)+' in file '+str(showfilename)+' THREAD['+str(thn)+']',flush=True)
                         sysexit()
 
                 else:
                     logging.info ('###### ITS NOT AN ARCADE GAMEE '+showfilename+' THREAD['+str(thn)+']')
-                    partnames =  sub('[^A-Za-z0-9]+',' ',fname).lower().split()
+                    partnames =  sub(r'[^A-Za-z0-9]+',' ',fname).lower().split()
                 if 0 not in system:
                     exclude_words = ['trsi','bill','sinclair','part','tape','gilbert','speedlock','erbesoftwares','aka','erbe','iso','psn','soft','crack','dsk','release','z80','2000','2001','2002','2003','2004','2005','2006','2007','2008','2009','2010','2011','2012','2013','2014','2015','2016','2017','2018','2019','2020','prototype','pirate','world','fre','h3c','jue','edition','c128','unl','1983','1984','ltd','side','1985','1986','1987','software','disabled','atx','bamcopy','playable','data','boot','xenophobia','code','dump','compilation','cd1','cd2','cd3','cd4','paradox','19xx','1988','1989','1990','1991','1992','1993','1994','1995','1996','manual','csl','defjam','files','pdx','doscopy','bootable','cracktro','flashtro','flt','checksum','error','qtx','aga','corrupt','disk1','disk2','disk3','disk4','disk5','disk6','italy','spain','psx','disc','demo','rev','slus','replicants','germany','france','start','tsth','patch','newgame','sega','beta','hack','rus','h1c','h2c','the','notgame','zzz','and','pal','ntsc','disk','file','inc','fullgame','48k','128k','16k','tap','tzx','usa','japan','europe','d64','t64','c64']
-                    sfname = sub("[\(\[].*?[\)\]]", "", fname)
+                    sfname = sub(r"[\(\[].*?[\)\]]", "", fname)
                     sfname = sfname.replace('_',' ').strip()
                     for thissys in system:
                         logging.info ('###### LOOKING IN SYSTEM '+str(thissys)+' THREAD['+str(thn)+']')
@@ -411,47 +412,47 @@ def loadCompanies(apikey,uuid,thn):
 
 def multiDisk(filename):
     matchs=[]
-    checkreg = '\([P|p][A|a][R|r][T|t][^\)]*\)|\([F|f][I|i][L|l][E|e][^\)]*\)|\([D|d][I|i][S|s][K|k][^\)]*\)|\([S|s][I|i][D|d][E|e][^\)]*\)|\([D|d][I|i][S|s][C|c][^\)]*\)|\([T|t][A|a][P|p][E|e][^\)]*\)'
+    checkreg = r'\([P|p][A|a][R|r][T|t][^\)]*\)|\([F|f][I|i][L|l][E|e][^\)]*\)|\([D|d][I|i][S|s][K|k][^\)]*\)|\([S|s][I|i][D|d][E|e][^\)]*\)|\([D|d][I|i][S|s][C|c][^\)]*\)|\([T|t][A|a][P|p][E|e][^\)]*\)'
     matchs = matchs+findall(checkreg,filename)
-    checkreg = '[G|g][A|a][M|m][E|e]\ [D|d][I|i][S|s][K|k]\ \d*'
+    checkreg = r'[G|g][A|a][M|m][E|e]\ [D|d][I|i][S|s][K|k]\ \d*'
     matchs = matchs+findall(checkreg,filename)
     return matchs
 
 def multiHack(filename):
-    checkreg = '\(.*[H|h][A|a][C|c][K|k][^\)]*\)|\([P|p][R|o][T|t][O|o][T|t][Y|y][P|p][E|e][^\)]*\)|\([D|d][E|e][M|m][O|o][^\)]*\)|\([S|s][A|a][M|m][P|p][L|l][E|e][^\)]*\)|\([B|b][E|e][T|t][A|a][^\)]*\)'    
+    checkreg = r'\(.*[H|h][A|a][C|c][K|k][^\)]*\)|\([P|p][R|o][T|t][O|o][T|t][Y|y][P|p][E|e][^\)]*\)|\([D|d][E|e][M|m][O|o][^\)]*\)|\([S|s][A|a][M|m][P|p][L|l][E|e][^\)]*\)|\([B|b][E|e][T|t][A|a][^\)]*\)'    
     matchs = findall(checkreg,filename)
     return matchs
 
 def multiCountry(filename):
     matchs=[]
-    checkreg = '\([E|e][U|u][R|r][O|o][P|p][E|e][^\)]*\)|\([U|u][S|s][A|a][^\)]*\)|\([J|j][A|a][P|p][A|a][N|n][^\)]*\)|\([E|e][U|u][R|r][A|a][S|s][I|i][A|a][^\)]*\)'
+    checkreg = r'\([E|e][U|u][R|r][O|o][P|p][E|e][^\)]*\)|\([U|u][S|s][A|a][^\)]*\)|\([J|j][A|a][P|p][A|a][N|n][^\)]*\)|\([E|e][U|u][R|r][A|a][S|s][I|i][A|a][^\)]*\)'
     matchs = matchs+findall(checkreg,filename)
-    checkreg = '\([S|s][P|p][A|a][I|i][N|n][^\)]*\)|\([F|f][R|r][A|a][N|n][C|c][E|e][^\)]*\)|\([G|g][E|e][R|r][M|m][A|a][N|n][Y|y][^\)]*\)'
+    checkreg = r'\([S|s][P|p][A|a][I|i][N|n][^\)]*\)|\([F|f][R|r][A|a][N|n][C|c][E|e][^\)]*\)|\([G|g][E|e][R|r][M|m][A|a][N|n][Y|y][^\)]*\)'
     matchs = matchs+findall(checkreg,filename)
-    checkreg = '\([P|p][A|a][L|l][^\)]*\)|\([N|n][T|t][S|s][C|c][^\)]*\)|\([E|e][N|n][G|g][^\)]*\)|\([R|r][U|u][^\)]*\)|\([D|d][E|e][^\)]*\)|\([E|e][^\)]*\)|\([U|u][^\)]*\)|\([J|j][^\)]*\)|\([S|s][^\)]*\)|\([N|n][^\)]*\)|\([F|f][^\)]*\)|\([J|j][P|p][^\)]*\)|\([N|n][L|l][^\)]*\)|\([K|k][R|r][^\)]*\)|\([E|e][S|s][^\)]*\)'
+    checkreg = r'\([P|p][A|a][L|l][^\)]*\)|\([N|n][T|t][S|s][C|c][^\)]*\)|\([E|e][N|n][G|g][^\)]*\)|\([R|r][U|u][^\)]*\)|\([D|d][E|e][^\)]*\)|\([E|e][^\)]*\)|\([U|u][^\)]*\)|\([J|j][^\)]*\)|\([S|s][^\)]*\)|\([N|n][^\)]*\)|\([F|f][^\)]*\)|\([J|j][P|p][^\)]*\)|\([N|n][L|l][^\)]*\)|\([K|k][R|r][^\)]*\)|\([E|e][S|s][^\)]*\)'
     matchs = matchs+findall(checkreg,filename)
     return matchs
 
 def multiVersion(filename):
     matchs=[]
     ## Check if version is between ()
-    checkreg = '\([V|v|R|r]\d+\.\d+.*\)'
+    checkreg = r'\([V|v|R|r]\d+\.\d+.*\)'
     matchs = matchs+findall(checkreg,filename)
     if matchs:
         for match in matchs:
             filename = filename.replace(match,'')
-    checkreg = '[V|v|R|r]\d+\.\d+'
+    checkreg = r'[V|v|R|r]\d+\.\d+'
     nmatchs = findall(checkreg,filename)
     if nmatchs:
         for match in matchs:
             filename = filename.replace(match,'')
         matchs = matchs+nmatchs
-    checkreg = '#\d+'
+    checkreg = r'#\d+'
     matchs = matchs+findall(checkreg,filename)
     return matchs
 
 def bracketmatch(filename):
-    checkreg = '\[.*\]'
+    checkreg = r'\[.*\]'
     matchs = findall(checkreg,filename)
     return matchs
 
@@ -1005,7 +1006,7 @@ def scanSystems(q,systems,apikey,uuid,companies,config,logging,remoteSystems,sel
         print ('COULD NOT FIND ANY SYSTEMS - EXITING',flush=True)
         return
     getmeout = False
-    emptyGameTag = "\n\t<game>\n\t\t<rating>$RATING</rating>\n\t\t<name>$NAME</name>\n\t\t<marquee>$MARQUEE</marquee>\n\t\t<image>$IMAGE</image>\n\t\t<publisher>$PUBLISHER</publisher>\n\t\t<releasedate>$RELEASEDATE</releasedate>\n\t\t<players>$PLAYERS</players>\n\t\t<video>$VIDEO</video>\n\t\t<genre>$GENRE</genre>\n\t\t<path>$PATH</path>\n\t\t<developer>$DEVELOPER</developer>\n\t\t<thumbnail/>\n\t\t<desc>$DESCRIPTION</desc>$FAVO\n\t\t<playcount>$PLAYCOUNT</playcount>\n\t\t<lastplayed>$LASTPLAY</lastplayed>\n\t</game>"
+    emptyGameTag = r"\n\t<game>\n\t\t<rating>$RATING</rating>\n\t\t<name>$NAME</name>\n\t\t<marquee>$MARQUEE</marquee>\n\t\t<image>$IMAGE</image>\n\t\t<publisher>$PUBLISHER</publisher>\n\t\t<releasedate>$RELEASEDATE</releasedate>\n\t\t<players>$PLAYERS</players>\n\t\t<video>$VIDEO</video>\n\t\t<genre>$GENRE</genre>\n\t\t<path>$PATH</path>\n\t\t<developer>$DEVELOPER</developer>\n\t\t<thumbnail/>\n\t\t<desc>$DESCRIPTION</desc>$FAVO\n\t\t<playcount>$PLAYCOUNT</playcount>\n\t\t<lastplayed>$LASTPLAY</lastplayed>\n\t</game>"
     logging.info ('###### DO ALL SYSTEMS?')
     try:
         doallsystems = (selectedSystems[1]==trans['all'])
@@ -1032,6 +1033,17 @@ def scanSystems(q,systems,apikey,uuid,companies,config,logging,remoteSystems,sel
             print ('ERROR '+errormsg,flush=True)
             continue
         outXMLFile = system['path']+'gamelist.xml'
+        try:
+            createdtime = os.path.getmtime(outXMLFile)
+            now =time.time()
+            elapsed = now-createdtime
+        except:
+            ## There was no original Gamelist File
+            elapsed = config['config']['olderthan'] - 1
+            pass
+        if elapsed<config['config']['olderthan']:
+            print ('System '+str(system['name'])+' was updated less than '+str(int(config['config']['olderthan']/24/60/60))+' days ago. Skipping',flush=True)
+            continue
         currglvalues = getGamelistData(outXMLFile)
         tmpxmlFile = hpath+'gamelist'+str(os.getpid())+'.xml'
         writeFile = open(tmpxmlFile,'w',encoding="utf-8")
