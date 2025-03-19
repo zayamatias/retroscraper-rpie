@@ -1106,8 +1106,12 @@ def sortGenres(q,genres,systems,apikey,uuid,companies,config,logging,remoteSyste
 
             genres = returnGenres(myrom,config,system,logging,apikey,uuid,thn)
             for mygenre in genres:
-                customcollectionfile = standard_genres[mygenre]
-                appendCustomCollection(customcollectionfile,str(myrom))
+                try:
+                    customcollectionfile = standard_genres[mygenre]
+                    appendCustomCollection(customcollectionfile,str(myrom))
+                except:
+                    logging.error ('###### COULD NOT FIND GENRE '+str(mygenre))
+                    print ('Could not find genre '+str(mygenre))
         pass        
     ### IM HERE
     return
