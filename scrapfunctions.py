@@ -992,7 +992,126 @@ def sortRoms(q,remotesystems,apikey,uuid,companies,config,logging,thn):
         subprocess.call (['cp',origfile,destfile])
     return
 
+def normalizeText(text):
+    return text.replace(' ','_').replace('\'','').replace('(','').replace(')','').replace('&','and').replace(',','').replace('.','').replace('-','_').replace('!','').replace('?','').replace(':','').replace(';','').replace('/','_').replace('\\','_').replace('"','').replace('___','_').replace('__','_').replace('_',' ').lower()
 
+def createGenreGamelist(gamelistname):
+    writeFile = open(gamelistname,'w',encoding="utf-8")
+    writeFile.close()
+    return
+
+def appendCustomCollection(gamelistname,rompath):
+    print ("Adding "+rompath+" to "+gamelistname)
+    writeFile = open(gamelistname,'a',encoding="utf-8")
+    writeFile.write(rompath+'\n')
+    writeFile.close()
+
+def returnGenres(romfile,config,system,logging,apikey,uuid,thn):
+    mysha1,mymd5,mycrc = getChecksums(str(romfile),config,logging,thn)
+    logging.info ('####### GOT CHECKSUMS FOR '+str(romfile)+' THREAD['+str(thn)+']')
+    ## PROCESS FILE AND START DOING MAGIC
+    logging.info ('####### GETTING INFO FOR '+str(romfile)+' THREAD['+str(thn)+']')
+    result = getInfoFromAPI (system['id'],str(romfile),mysha1,mymd5,mycrc,apikey,uuid,logging,thn)
+    mygenres =[]
+    for mygenre in result['game']['genres']:
+        if mygenre['id'] not in mygenres:
+            mygenres.append(mygenre['id'])
+    if not mygenres:
+        mygenres.append(999999)
+    return (mygenres)
+
+def sortGenres(q,genres,systems,apikey,uuid,companies,config,logging,remoteSystems,selectedSystems,scanqueue,origrompath,trans,thn,cli=False):
+    hpath = str(Path.home())+'/.emulationstation/collections/'
+    if not os.path.exists(hpath):
+        makedirs(hpath)
+    print ('Sorting Roms By Genre',flush=True)
+    standard_genres =dict()
+    for genre in genres['genres']:
+        genre_name=[normalizeText(myname['text']) for myname in genre['names'] if myname['language']=='en']
+        if genre_name:
+            genre_filename = hpath+"custom-"+genre_name[0]+'.cfg'
+            standard_genres[genre['id']] =  genre_filename
+            createGenreGamelist(genre_filename)
+    standard_genres[999999] =  hpath+"custom-unknown.cfg"
+    createGenreGamelist(hpath+"custom-unknown.cfg")
+    if not systems:
+        logging.info ('###### NO SYSTEMS TO SCAN')
+        print ('COULD NOT FIND ANY SYSTEMS - EXITING',flush=True)
+        return
+    logging.info ('###### DO ALL SYSTEMS?')
+    try:
+        doallsystems = (selectedSystems[1]==trans['all'])
+    except:
+        if not selectedSystems:
+            doallsystems=True
+        else:
+            doallsystems=False
+    logging.info ('###### DO ALL SYSTEMS '+str(doallsystems))
+    logging.info ('###### THESE ARE THE SELECTED SYSTEMS:'+str(selectedSystems))
+    systemList = getSystems(systems,selectedSystems,doallsystems)
+
+    for system in systemList:
+        if system['name'].lower()=='retropie':
+            print ('Skipping System '+str(system['name']))
+            continue
+        print ('Doing System '+str(system['name']))
+        try:
+            spath = system['path']
+            if spath[-1] != '/':
+                spath = spath +'/'
+            logging.info ('###### GOING FOR LOCAL PATH')
+            try:
+                if config['config']['fixedmediadir']:
+                    if config['config']['fixedmediadir']=='/':
+                        excpaths=['/NONE/','/NONE/','/NONE/']
+                    else:
+                        tmpex =config['config']['fixedmediadir'][1:]+system['name']
+                        excpaths=[tmpex,tmpex,tmpex]
+                else:
+                    excpaths = ['/images/','videos/','/marquees/']
+                if config['config']['recursive']:
+                    romfiles = [x for x in sorted(Path(spath).glob('**/*.*')) if ((excpaths[0] not in x.as_posix()) and (excpaths[1] not in x.as_posix()) and (excpaths[2] not in x.as_posix()) and ('.cfg' not in x.name) and ('.save' not in x.name) and ('.xml' not in x.name))]
+                else:
+                    romfiles = [x for x in sorted(Path(spath).glob('*.*')) if ((excpaths[0] not in x.as_posix()) and (excpaths[1] not in x.as_posix()) and (excpaths[2] not in x.as_posix()) and ('.cfg' not in x.name) and ('.save' not in x.name) and ('.xml' not in x.name))]
+            except:
+                romfiles = [x for x in sorted(Path(spath).glob('*.*')) if ((excpaths[0] not in x.as_posix()) and (excpaths[1] not in x.as_posix()) and (excpaths[2] not in x.as_posix()) and ('.cfg' not in x.name) and ('.save' not in x.name) and ('.xml' not in x.name))]
+            logging.info ('###### FOUND '+str(len(romfiles))+' ROMS FOR SYSTEM')
+        except Exception as e:
+            logging.error ('####### CANNOT OPEN SYSTEM DIR '+system['path']+' ERROR '+str(e))
+            errormsg = trans['nodirmsg'].replace('$DIR',str(system['path'])).replace('$SYS',str(system['name']))
+            print ('ERROR '+errormsg)
+            #q.put(['errorlabel','text',errormsg])
+            continue
+        try:
+            logging.info('==========='+str(len(romfiles)))
+        except Exception as e:
+            logging.error(str(e))
+        if len(romfiles)==0:
+            errormsg = trans['noromsmsg'].replace('$DIR',str(system['path'])).replace('$SYS',str(system['name']))
+            print ('ERROR '+errormsg)
+            #q.put (['errorlabel','text',errormsg])
+            continue
+        print ('Found '+str(len(romfiles))+ ' roms for the system')
+        if 75 in system['id']:
+            sysid=75
+            print ('This is an arcade system')
+        else:
+            sysid=system['id'][0]
+        #### SYSTEM IMAGE
+        for myrom in romfiles:
+            filext = myrom.suffix
+            if (not filext in system['extension']) or ('gamelist.xml' in str(myrom).lower()):
+                print ('This file ['+str(myrom.name)+'] is not in the list of accepted extensions')
+                continue
+
+            genres = returnGenres(myrom,config,system,logging,apikey,uuid,thn)
+            for mygenre in genres:
+                customcollectionfile = standard_genres[mygenre]
+                appendCustomCollection(customcollectionfile,str(myrom))
+        pass        
+    ### IM HERE
+    return
+    
 def scanSystems(q,systems,apikey,uuid,companies,config,logging,remoteSystems,selectedSystems,scanqueue,origrompath,trans,thn,cli=False):
     hpath = str(Path.home())+'/.retroscraper/'
     print ('Scanning Files',flush=True)

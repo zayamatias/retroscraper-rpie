@@ -1,3 +1,2 @@
 .vscode/launch.json
-__pycache__/scrapfunctions.cpython-312.pyc
-__pycache__/scrapfunctions.cpython-312.pyc
+__pycache__/*.*

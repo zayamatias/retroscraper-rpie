@@ -264,6 +264,15 @@ def getSystemsFromAPI(apikey,uuid,thn):
     else:
         return result.json()['response']
 
+def getGenresFromAPI(apikey,uuid,thn):
+    url = backendURL()+'/api/genres'
+    result = getCallHandler(url, apikey,uuid,thn)
+    if result.status_code != 200:
+        return []
+    else:
+        return result.json()['response']
+
+
 def getCompaniesFromAPI(apikey,uuid,thn):
     url = backendURL()+'/api/companies'
     result = getCallHandler(url, apikey,uuid,thn)

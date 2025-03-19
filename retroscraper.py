@@ -79,6 +79,7 @@ if __name__ == '__main__':
     parser.add_argument('--listlangs', help='List available languages',action='store_true')
     parser.add_argument('--appver', help='Display retroscraper version and stop',action='store_true')
     parser.add_argument('--sort', help='Sort your roms by system, put all your roms in one directory and output structure to second directory',nargs=2,metavar=('ORIG','DEST'))
+    parser.add_argument('--genresort', help='Sort your roms by genre, it will create one playlist per genre',action='store_true')
     parser.add_argument('--olderthan', help='Skip gamelists that are not older than X days',nargs=1)
     try:
         args = parser.parse_args()
@@ -191,6 +192,10 @@ if __name__ == '__main__':
         config['config']['olderthan']= int(argsvals['olderthan'][0])*24*60*60
     except:
         config['config']['olderthan']= 0
+    try:
+        config['config']['genrecollection']= True
+    except:
+        config['config']['genrecollection']= False
 
     try:
         fixedmediadir = argsvals['mediadir'][0]
@@ -274,6 +279,7 @@ if __name__ == '__main__':
         sysexit(0)
     logging.info ('###### LOADING COMPANIES FROM BACKEND THREAD[MAIN]')
     companies = scrapfunctions.loadCompanies(apikey,uuid,'MAIN')
+    genres = apicalls.getGenresFromAPI(apikey,uuid,'MAIN')
     rompath = scrapfunctions.getAbsRomPath(systems[0]['path'],'MAIN')
     print ('Starting scraping', flush=True)
     logging.info ('###### STARTING SCRAPPING ')
@@ -282,7 +288,12 @@ if __name__ == '__main__':
         print ("Going to sort your roms from "+config['config']['sort']['indir']+" to "+config['config']['sort']['outdir'])
         thread = Thread(target= scrapfunctions.sortRoms,args=(q,remoteSystems,apikey,uuid,companies,config,logging,'MAIN'))
     else:
-        thread = Thread(target= scrapfunctions.scanSystems,args=(q,systems,apikey,uuid,companies,config,logging,remoteSystems,systemstoscan,scanqueue,rompath,trans,'MAIN',True))
+        if not config['config']['genrecollection']:
+            thread = Thread(target= scrapfunctions.scanSystems,args=(q,systems,apikey,uuid,companies,config,logging,remoteSystems,systemstoscan,scanqueue,rompath,trans,'MAIN',True))
+        else:
+            print ("Going to create colelctions for your roms based in genre, these will be located in ~/.retroscraper/gamelists/.")
+            thread = Thread(target= scrapfunctions.sortGenres,args=(q,genres,systems,apikey,uuid,companies,config,logging,remoteSystems,systemstoscan,scanqueue,rompath,trans,'MAIN',True))
+            
     thread.start()
     system =''
     game=''
