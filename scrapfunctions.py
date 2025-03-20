@@ -1042,8 +1042,9 @@ def returnGenres(romfile,config,system,logging,apikey,uuid,thn):
 
 def sortGenres(q,genres,systems,apikey,uuid,companies,config,logging,remoteSystems,selectedSystems,scanqueue,origrompath,trans,thn,cli=False):
     hpath = str(Path.home())+'/.emulationstation/collections/'
-    if not os.path.exists(hpath):
-        makedirs(hpath)
+    if os.path.exists(hpath):
+        rmtree(hpath)
+    makedirs(hpath)
     print ('Sorting Roms By Genre',flush=True)
     standard_genres =dict()
     for genre in genres['genres']:
