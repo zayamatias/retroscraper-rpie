@@ -7,11 +7,11 @@ Trimmed down version of retroscrpaer, designed for a lighter experience and Retr
 
 Log in via ssh to your RetroPie machine
 
-Cange to the home directory
+Change to the home directory
 ```
 cd
 ```
-Recomemnded: update your system
+Recommended: update your system
 ```
 sudo apt update
 sudo apt upgrade
@@ -26,7 +26,7 @@ Get the latest version of retroscraper
 ```
 git clone https://github.com/zayamatias/retroscraper-rpie.git
 ```
-Change dirctory to retroscraper location
+Change directory to retroscraper location
 ```
 cd retroscraper-rpie
 ```
@@ -45,11 +45,11 @@ Thanks to learntoswim for the heads up.
 
 ### To be used with retropie_setup
 
-Download retroscraper.sh and copy it to your RetroPie supplemetary directory, usually:
+Download retroscraper.sh and copy it to your RetroPie supplementary directory, usually:
 
 /home/pi/RetroPie/scriptmodules/supplementary
 
-Run retropie setup and go to manage optiona packages. By the bottom of the list you should see the retroscraper function.
+Run retropie setup and go to manage optional packages. By the bottom of the list, you should see the retroscraper function.
 
 Install it and once done go to configure/options to run it.
 
@@ -76,7 +76,7 @@ Location of the, usually called, es_systems.cfg file, this is the emulation stat
 
 #### --recursive
 
-Scan subfloders in your system folder
+Scan subfolders in your system folder
 
 #### --relativepaths
 
@@ -84,9 +84,9 @@ Store relative paths in the gamelist
 
 #### --mediadir DIR
 
-This commabd gives you the option to chose the destination of the media files, you have three options:
+This command gives you the option to choose the destination of the media files, you have three options:
 
-- Leave it blank, and by default it will save the edia under 3 directories (images, marquees and videos) within the system directory, for example ~/RetroPie/roms/amiga/images, ~/RetroPie/roms/amiga/videos,~/RetroPie/roms/amiga/marquees
+- Leave it blank, and by default, it will save the media under 3 directories (images, marquees and videos) within the system directory, for example ~/RetroPie/roms/amiga/images, ~/RetroPie/roms/amiga/videos,~/RetroPie/roms/amiga/marquees
 
 - Put an absolute path (DIR starting by /) and it will save everything under that absolute path, but appending the system name to avoid clashing of names, for example, if DIR is '/home/pi/medias' it will create '/home/pi/medias/amiga' and save media there.
 
@@ -100,11 +100,11 @@ Download boxes instead of screenshots for games
 
 #### --novideodown
 
-Do not download videos (to save space if needd)
+Do not download videos (to save space if needed)
 
 #### Name Decorators:
 
-The following options allow you to add 'decorators' to the name taht is going to be displayed in your game list. They are disabled by default.
+The following options allow you to add 'decorators' to the name that is going to be displayed in your game list. They are disabled by default.
 
 #### --version
 
@@ -116,7 +116,7 @@ Similar to previous option, but searching for matches of _ _(xxxx Beta xxxx)_ _ 
 
 #### --country
 
-Simiular to previous option, but searching for matches of _ _(xx)_ _ where xx is an identified country/language shortname, such as usa,fr, en, es, etc..
+Similar to the previous option, but searching for matches of _ _(xx)_ _ where xx is an identified country/language shortname, such as usa,fr, en, es, etc..
 
 #### --disk
 
@@ -124,22 +124,22 @@ Simiilar to previous option, but searching for matches of _ _(Tape xx of yy)_ _ 
 
 #### --brackets
 
-As in previous commands, but this time it will match the brackets '[]' and insert tehm in the game name.
+As in previous commands, but this time it will match the brackets '[]' and insert them in the game name.
 
 All previous options will relay on the filename, so if the information is not in the filename, it will not show in the final name.
 
 #### --bezels & --sysbezels
 
-This two options allow you to download the game bezels (this is usually a pciture surrounding the playing area) and will allow you to decide if you want to download the generic system bezel if the game bezel is not found.
+These two options allow you to download the game bezels (this is usually a picture surrounding the playing area) and will allow you to decide if you want to download the generic system bezel if the game bezel is not found.
 
 
 #### --language LN & --google
 
-Language to use for game names & synposis
+Language to use for game names & synopsis
 
-If you select to use google translate, the games desciptions which are not available in the selected language, will be translated by google.
+If you select to use Google Translate, the game descriptions which are not available in the selected language will be translated by google.
 
-Default language is 'en'
+The default language is 'en'
 
 #### --nodb
 
@@ -159,5 +159,5 @@ Scan systems with gamelists older than X days
 
 #### --genresort
 
-Create collections based on game's genre, see https://retropie.org.uk/docs/EmulationStation/ for reference on how to activate and see them in the selection menu.
+Create collections based on the game's genre, see https://retropie.org.uk/docs/EmulationStation/ for reference on how to activate and see them in the selection menu. This will not update your game lists, game information or download any media at all.
 
