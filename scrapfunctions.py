@@ -939,7 +939,32 @@ def fileProcess(currFileIdx,romfiles,currglvalues,system,q,sq):
     else:
         return file,filext,oldValues
 
-def getSystems(allsys,selected,all):
+def getSystems(allsys,selected,all,remoteSystems):
+    arcadeflag='coin-op'
+    if "arcade" in selected or 'coinop' in selected or 'coin-op' in selected:
+        try:
+            selected.remove('arcade')
+            selected.remove('coinop')
+            selected.remove('coin-op')
+        except:
+            pass
+        for mysys in remoteSystems['systems']:
+            if mysys['type'].lower() == 'coin-op':
+                try:
+                    selected.append(mysys['name'].lower())
+                except:
+                    for myname in mysys['names']:
+                        for mykey in myname.keys():
+                            if myname[mykey].lower():
+                                if ',' in myname[mykey].lower():
+                                    for subnames in myname[mykey].lower().split(','):
+                                        if subnames not in selected:
+                                            selected.append(subnames)
+                                else:
+                                    if myname[mykey].lower() not in selected:
+                                        selected.append(myname[mykey].lower())
+                        
+
     retsys = []
     for system in allsys:
         if not system['name']:
@@ -995,11 +1020,6 @@ def sortRoms(q,remotesystems,apikey,uuid,companies,config,logging,thn):
 def normalizeText(text):
     return text.replace(' ','_').replace('\'','').replace('(','').replace(')','').replace('&','and').replace(',','').replace('.','').replace('-','_').replace('!','').replace('?','').replace(':','').replace(';','').replace('/','_').replace('\\','_').replace('"','').replace('___','_').replace('__','_').replace('_',' ').lower()
 
-def createGenreGamelist(gamelistname):
-    writeFile = open(gamelistname,'w',encoding="utf-8")
-    writeFile.close()
-    return
-
 def appendCustomCollection(gamelistname,rompath):
     print ("Adding "+rompath+" to "+gamelistname)
     writeFile = open(gamelistname,'a',encoding="utf-8")
@@ -1031,9 +1051,8 @@ def sortGenres(q,genres,systems,apikey,uuid,companies,config,logging,remoteSyste
         if genre_name:
             genre_filename = hpath+"custom-"+genre_name[0]+'.cfg'
             standard_genres[genre['id']] =  genre_filename
-            createGenreGamelist(genre_filename)
+
     standard_genres[999999] =  hpath+"custom-unknown.cfg"
-    createGenreGamelist(hpath+"custom-unknown.cfg")
     if not systems:
         logging.info ('###### NO SYSTEMS TO SCAN')
         print ('COULD NOT FIND ANY SYSTEMS - EXITING',flush=True)
@@ -1048,7 +1067,14 @@ def sortGenres(q,genres,systems,apikey,uuid,companies,config,logging,remoteSyste
             doallsystems=False
     logging.info ('###### DO ALL SYSTEMS '+str(doallsystems))
     logging.info ('###### THESE ARE THE SELECTED SYSTEMS:'+str(selectedSystems))
-    systemList = getSystems(systems,selectedSystems,doallsystems)
+    try:
+        doallsystems = (selectedSystems[1]==trans['all'])
+    except:
+        if not selectedSystems:
+            doallsystems=True
+        else:
+            doallsystems=False
+    systemList = getSystems(systems,selectedSystems,doallsystems,remoteSystems)
 
     for system in systemList:
         if system['name'].lower()=='retropie':
@@ -1141,7 +1167,7 @@ def scanSystems(q,systems,apikey,uuid,companies,config,logging,remoteSystems,sel
             doallsystems=False
     logging.info ('###### DO ALL SYSTEMS '+str(doallsystems))
     logging.info ('###### THESE ARE THE SELECTED SYSTEMS:'+str(selectedSystems))
-    systemList = getSystems(systems,selectedSystems,doallsystems)
+    systemList = getSystems(systems,selectedSystems,doallsystems,remoteSystems)
     for system in systemList:
         if system['name'].lower()=='retropie':
             print ('Skipping System '+str(system['name']))

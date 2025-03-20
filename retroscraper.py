@@ -193,7 +193,7 @@ if __name__ == '__main__':
     except:
         config['config']['olderthan']= 0
     try:
-        config['config']['genrecollection']= True
+        config['config']['genrecollection']= argsvals['genresort']
     except:
         config['config']['genrecollection']= False
 
