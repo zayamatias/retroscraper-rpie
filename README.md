@@ -143,14 +143,21 @@ Default language is 'en'
 
 #### --nodb
 
-Retroscraper creates a local retroscraper.db file, where it will store all the checksums for yoru files. This is done to avoid losing extra time in subsequent runs, specially fro large files. If you prefer to calculate the hashes on teh fly, use this.
+Retroscraper creates a local retroscraper.db file, storing all the checksums for yoru files. This is done to avoid losing extra time in subsequent runs, specially fro large files. If you prefer to calculate the hashes on teh fly, use this.
 
 #### --nobackup
 
-Since latest version, RetroScraper will autoamtically generate a backup of your gamelist.xml file for each system, by adding a number to it (gamelist.xml.1, gamelist.xml.2 and so forth). If you want to avoid having these backups created, use this command.
+Since latest version, RetroScraper will automatically generate a backup of your gamelist.xml file for each system, by adding a number to it (gamelist.xml.1, gamelist.xml.2 and so forth). If you want to avoid having these backups created, use this command.
 
 #### --systems sys1,sys2,sys3...
 
 Provide a list of systems you will like to have scanned, separated by comma [_,_].The names are the same as the ones found in your es_systems.cfg file, under the _\<system\>\<name\>SYSTEMNAME\</name\>\</system\>_ tag.
 
+#### --olderthan
+
+Scan systems with gamelists older than X days
+
+#### --genresort
+
+Create collections based on game's genre, see https://retropie.org.uk/docs/EmulationStation/ for reference on how to activate and see them in the selection menu.
 
