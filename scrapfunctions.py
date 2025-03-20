@@ -1099,11 +1099,12 @@ def sortGenres(q,genres,systems,apikey,uuid,companies,config,logging,remoteSyste
             sysid=system['id'][0]
         #### SYSTEM IMAGE
         for myrom in romfiles:
+            if ospath.isdir(str(myrom)):
+                continue
             filext = myrom.suffix
             if (not filext in system['extension']) or ('gamelist.xml' in str(myrom).lower()):
                 print ('This file ['+str(myrom.name)+'] is not in the list of accepted extensions')
                 continue
-
             genres = returnGenres(myrom,config,system,logging,apikey,uuid,thn)
             for mygenre in genres:
                 try:
